@@ -1,0 +1,85 @@
+/* Cards & stat cards */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  margin-bottom: var(--space-6);
+  box-shadow: var(--shadow-xs);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.card:hover {
+  border-color: var(--neutral-200);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-title {
+  font-weight: 600;
+  font-size: var(--text-md);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-4) 0;
+  letter-spacing: var(--tracking-tight);
+  line-height: var(--leading-snug);
+}
+
+.card-value {
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tighter);
+  line-height: var(--leading-tight);
+  font-variant-numeric: tabular-nums;
+}
+
+.card-value.positive { color: var(--success); }
+.card-value.negative { color: var(--danger); }
+.card-value.neutral { color: var(--text-primary); }
+
+.grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--space-5);
+  margin-bottom: var(--space-6);
+}
+
+.grid-cards .card {
+  margin-bottom: 0;
+}
+
+.grid-cards .card .card-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: none;
+  letter-spacing: -0.01em;
+}
+
+.grid-cards .card .card-value {
+  font-size: 1.625rem;
+}
+
+.grid-cards .card .muted {
+  display: block;
+  margin-bottom: var(--space-2);
+  font-size: 12px;
+}
+
+@media (max-width: 768px) {
+  .card {
+    padding: var(--space-4);
+    margin-bottom: var(--space-4);
+    border-radius: var(--radius);
+  }
+  .card-title {
+    font-size: 14px;
+    margin-bottom: var(--space-3);
+  }
+  .grid-cards {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+  .grid-cards .card .card-value {
+    font-size: var(--text-xl);
+  }
+}
