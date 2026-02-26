@@ -3,15 +3,17 @@
 cd "$(dirname "$0")"
 
 echo "Starting backend (Django)..."
-(cd backend && source venv/bin/activate && python manage.py runserver) &
+(cd backend && source venv/bin/activate && python manage.py runserver 0.0.0.0:8000) &
 BACKEND_PID=$!
+
+trap "kill $BACKEND_PID 2>/dev/null" EXIT
 
 sleep 3
 echo "Starting frontend (Vite)..."
 echo ""
 echo "  >>> Open in your browser: http://127.0.0.1:3000"
-echo "  >>> Press Ctrl+C to stop both servers"
+echo "  >>> Backend: http://127.0.0.1:8000"
+echo "  >>> Press Ctrl+C once to stop both servers"
 echo ""
 
 (cd frontend && npm run dev)
-trap "kill $BACKEND_PID 2>/dev/null" EXIT

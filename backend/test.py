@@ -1,21 +1,34 @@
+"""
+Utility script to test Green API WhatsApp integration.
+
+IMPORTANT:
+- This file no longer contains real credentials.
+- Configure the following environment variables before use:
+    GREENAPI_INSTANCE_ID
+    GREENAPI_TOKEN
+    GREENAPI_BASE_URL       (e.g. https://7103.api.greenapi.com)
+    GREENAPI_TARGET_PHONE   (e.g. 923331234567)
+
+Rotate any real credentials that may have previously been committed.
+"""
+
 import json
+import os
 import urllib.request
 
-# Hard-coded Green API config (for quick testing)
-GREENAPI_INSTANCE_ID = "7103508051"
-GREENAPI_TOKEN = "a3d98782f1f04ad79f93c555d9eb1a128c84ac6e52da43eea4"
-GREENAPI_BASE_URL = "https://7103.api.greenapi.com"
 
-# TARGET NUMBER (must be in international format, without +)
-# Example for Pakistan: +92 333 2466662  =>  "923332466662"
-TARGET_PHONE = "923332466662"  # 0333 2466662 => 923332466662
+GREENAPI_INSTANCE_ID = os.environ.get("GREENAPI_INSTANCE_ID", "").strip()
+GREENAPI_TOKEN = os.environ.get("GREENAPI_TOKEN", "").strip()
+GREENAPI_BASE_URL = os.environ.get("GREENAPI_BASE_URL", "").strip() or "https://api.green-api.com"
+TARGET_PHONE = os.environ.get("GREENAPI_TARGET_PHONE", "").strip()
+
 
 def send_greenapi_message(phone: str, text: str) -> bool:
     if not (GREENAPI_INSTANCE_ID and GREENAPI_TOKEN and GREENAPI_BASE_URL):
-        print("Missing GREENAPI config.")
+        print("Missing GREENAPI config. Set GREENAPI_INSTANCE_ID, GREENAPI_TOKEN, GREENAPI_BASE_URL.")
         return False
 
-    url = f"{GREENAPI_BASE_URL}/waInstance{GREENAPI_INSTANCE_ID}/sendMessage/{GREENAPI_TOKEN}"
+    url = f"{GREENAPI_BASE_URL.rstrip('/')}/waInstance{GREENAPI_INSTANCE_ID}/sendMessage/{GREENAPI_TOKEN}"
 
     payload = {
         "chatId": f"{phone}@c.us",  # Green API format
@@ -41,6 +54,9 @@ def send_greenapi_message(phone: str, text: str) -> bool:
 
 
 if __name__ == "__main__":
-    msg = "Test message from Construx360 via Green API."
-    ok = send_greenapi_message(TARGET_PHONE, msg)
-    print("Sent:", ok)
+    if not TARGET_PHONE:
+        print("Set GREENAPI_TARGET_PHONE (e.g. 923331234567) before running this script.")
+    else:
+        msg = "Test message from Construx360 via Green API."
+        ok = send_greenapi_message(TARGET_PHONE, msg)
+        print("Sent:", ok)
