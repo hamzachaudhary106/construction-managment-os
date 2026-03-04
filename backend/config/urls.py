@@ -7,8 +7,11 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
+from core.views import HealthView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/health/', HealthView.as_view(), name='api-health'),
     path('api/auth/', include('core.urls')),
     path('api/projects/', include('projects.urls')),
     path('api/parties/', include('parties.urls')),

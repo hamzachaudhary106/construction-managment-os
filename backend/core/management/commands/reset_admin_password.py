@@ -49,6 +49,10 @@ class Command(BaseCommand):
 
         user.set_password(password)
         user.is_active = True
-        user.save(update_fields=['password', 'is_active'])
+        user.is_staff = True
+        user.is_superuser = True
+        user.save(update_fields=['password', 'is_active', 'is_staff', 'is_superuser'])
 
-        self.stdout.write(self.style.SUCCESS(f'Password for "{username}" has been reset. You can log in now.'))
+        self.stdout.write(self.style.SUCCESS(
+            f'Password for "{username}" has been reset and admin access (is_staff, is_superuser) enabled. You can log in at /admin/ now.'
+        ))

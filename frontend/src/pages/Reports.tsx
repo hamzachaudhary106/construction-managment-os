@@ -3,6 +3,8 @@ import PageHeader from '../components/PageHeader';
 import { Card, StatCard } from '../components/Card';
 import client from '../api/client';
 import { formatRs } from '../utils/format';
+import { useToast } from '../context/ToastContext';
+import { apiErrors } from '../utils/apiErrors';
 import './Dashboard.css';
 
 type FinancialReport = { total_income: number; total_expenses: number; net: number; project_id: number | null };
@@ -19,6 +21,7 @@ type PayablesAging = {
 };
 
 export default function Reports() {
+  const toast = useToast();
   const [financial, setFinancial] = useState<FinancialReport | null>(null);
   const [pendingBills, setPendingBills] = useState<PendingBillsReport | null>(null);
   const [aging, setAging] = useState<PayablesAging | null>(null);
@@ -68,6 +71,21 @@ export default function Reports() {
       });
   };
 
+  const sendReportWhatsApp = (type: 'financial' | 'pending_bills' | 'cash_flow') => {
+    client
+      .post('/reports/export/send-whatsapp/', {
+        type,
+        format: 'pdf',
+        project_id: projectFilter || null,
+      })
+      .then(() => {
+        toast.success('Report sent to WhatsApp');
+      })
+      .catch((err) => {
+        toast.error(apiErrors(err)[0] || 'Failed to send via WhatsApp');
+      });
+  };
+
   return (
     <>
       <PageHeader title="Reports" subtitle="One-click financial and pending bills reports" />
@@ -80,10 +98,13 @@ export default function Reports() {
         <span style={{ marginLeft: '1rem' }} className="muted">Export:</span>
         <button type="button" className="btn-secondary" onClick={() => downloadExport('financial', 'xlsx')}>Financial (Excel)</button>
         <button type="button" className="btn-secondary" onClick={() => downloadExport('financial', 'pdf')}>Financial (PDF)</button>
+        <button type="button" className="btn-secondary" onClick={() => sendReportWhatsApp('financial')}>Financial (WhatsApp)</button>
         <button type="button" className="btn-secondary" onClick={() => downloadExport('cash_flow', 'xlsx')}>Cash flow (Excel)</button>
         <button type="button" className="btn-secondary" onClick={() => downloadExport('cash_flow', 'pdf')}>Cash flow (PDF)</button>
+        <button type="button" className="btn-secondary" onClick={() => sendReportWhatsApp('cash_flow')}>Cash flow (WhatsApp)</button>
         <button type="button" className="btn-secondary" onClick={() => downloadExport('pending_bills', 'xlsx')}>Pending bills (Excel)</button>
         <button type="button" className="btn-secondary" onClick={() => downloadExport('pending_bills', 'pdf')}>Pending bills (PDF)</button>
+        <button type="button" className="btn-secondary" onClick={() => sendReportWhatsApp('pending_bills')}>Pending bills (WhatsApp)</button>
       </div>
       <div className="grid-cards">
         {financial && (
@@ -97,22 +118,24 @@ export default function Reports() {
       {pendingBills && (
         <Card title="Pending & Overdue Bills">
           <p className="muted">Total pending amount: <strong>{formatRs(pendingBills.total_pending_amount)}</strong> ({pendingBills.count} bills)</p>
-          <table className="table" style={{ marginTop: '1rem' }}>
-            <thead>
-              <tr><th>Project</th><th>Description</th><th className="num">Amount</th><th>Due</th><th>Status</th></tr>
-            </thead>
-            <tbody>
-              {pendingBills.bills.map((b) => (
-                <tr key={b.id}>
-                  <td>{b.project_name}</td>
-                  <td>{b.description}</td>
-                  <td className="num">{formatRs(b.amount)}</td>
-                  <td>{b.due_date}</td>
-                  <td><span className={`badge badge-${b.status}`}>{b.status}</span></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="table-responsive">
+            <table className="table table-mobile-stack" style={{ marginTop: '1rem' }}>
+              <thead>
+                <tr><th>Project</th><th>Description</th><th className="num">Amount</th><th>Due</th><th>Status</th></tr>
+              </thead>
+              <tbody>
+                {pendingBills.bills.map((b) => (
+                  <tr key={b.id}>
+                    <td>{b.project_name}</td>
+                    <td>{b.description}</td>
+                    <td className="num">{formatRs(b.amount)}</td>
+                    <td>{b.due_date}</td>
+                    <td><span className={`badge badge-${b.status}`}>{b.status}</span></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           {pendingBills.bills.length === 0 && <p className="muted">No pending or overdue bills.</p>}
         </Card>
       )}
@@ -127,14 +150,16 @@ export default function Reports() {
             <div className="card"><span className="muted">90+ days</span><div className="card-value text-danger">{formatRs(aging.by_age['90_plus'])}</div></div>
           </div>
           <h3 className="card-title" style={{ fontSize: 14, marginBottom: 8 }}>By party (contract schedules)</h3>
-          <table className="table">
-            <thead><tr><th>Party</th><th className="num">Pending amount</th></tr></thead>
-            <tbody>
-              {aging.by_party.map((p) => (
-                <tr key={p.party_id || p.party_name}><td>{p.party_name}</td><td className="num">{formatRs(p.total)}</td></tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="table-responsive">
+            <table className="table table-mobile-stack">
+              <thead><tr><th>Party</th><th className="num">Pending amount</th></tr></thead>
+              <tbody>
+                {aging.by_party.map((p) => (
+                  <tr key={p.party_id || p.party_name}><td>{p.party_name}</td><td className="num">{formatRs(p.total)}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           {aging.by_party.length === 0 && <p className="muted">No payables by party.</p>}
         </Card>
       )}
@@ -150,21 +175,23 @@ export default function Reports() {
             ))}
           </div>
           {whtReport.rows.length > 0 && (
-            <table className="table">
-              <thead><tr><th>Project</th><th>Description</th><th className="num">Amount</th><th className="num">WHT</th><th>Certificate</th><th>Period</th></tr></thead>
-              <tbody>
-                {whtReport.rows.map((r, i) => (
-                  <tr key={`${r.source}-${i}`}>
-                    <td>{r.project_name}</td>
-                    <td>{r.description}</td>
-                    <td className="num">{formatRs(r.amount)}</td>
-                    <td className="num">{formatRs(r.wht_amount)}</td>
-                    <td>{r.wht_certificate_number || '—'}</td>
-                    <td>{r.wht_tax_period || '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="table-responsive">
+              <table className="table table-mobile-stack">
+                <thead><tr><th>Project</th><th>Description</th><th className="num">Amount</th><th className="num">WHT</th><th>Certificate</th><th>Period</th></tr></thead>
+                <tbody>
+                  {whtReport.rows.map((r, i) => (
+                    <tr key={`${r.source}-${i}`}>
+                      <td>{r.project_name}</td>
+                      <td>{r.description}</td>
+                      <td className="num">{formatRs(r.amount)}</td>
+                      <td className="num">{formatRs(r.wht_amount)}</td>
+                      <td>{r.wht_certificate_number || '—'}</td>
+                      <td>{r.wht_tax_period || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
           {whtReport.rows.length === 0 && whtReport.by_period.length === 0 && <p className="muted">No WHT data.</p>}
         </Card>

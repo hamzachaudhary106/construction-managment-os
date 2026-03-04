@@ -79,26 +79,28 @@ export default function Users() {
             <button type="submit" className="btn-primary">Create</button>
           </form>
         )}
-        <table className="table">
-          <thead>
-            <tr><th>Username</th><th>Name</th><th>Email</th><th>Role</th><th>Actions</th></tr>
-          </thead>
-          <tbody>
-            {users.map((u) => (
-              <tr key={u.id}>
-                <td><strong>{u.username}</strong></td>
-                <td>{u.first_name} {u.last_name}</td>
-                <td>{u.email}</td>
-                <td><span className="badge badge-active">{u.role}</span></td>
-                <td>
-                  <div className="table-actions">
-                    <button type="button" className="btn-action" onClick={() => startEdit(u)}>Edit</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="table-responsive">
+          <table className="table table-mobile-stack">
+            <thead>
+              <tr><th>Username</th><th>Name</th><th>Email</th><th>Role</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              {users.map((u) => (
+                <tr key={u.id}>
+                  <td><strong>{u.username}</strong></td>
+                  <td>{u.first_name} {u.last_name}</td>
+                  <td>{u.email}</td>
+                  <td><span className="badge badge-active">{u.role}</span></td>
+                  <td>
+                    <div className="table-actions">
+                      <button type="button" className="btn-action" onClick={() => startEdit(u)}>Edit</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </Card>
     </>
   );

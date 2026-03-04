@@ -11,6 +11,7 @@ from .views import (
     CompanyDetailView,
     ClientListCreateView,
     ClientDetailView,
+    HealthView,
 )
 
 urlpatterns = [
@@ -19,6 +20,7 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     path('me/', MeView.as_view(), name='me'),
     path('search/', GlobalSearchView.as_view(), name='global-search'),
+    path('health/', HealthView.as_view(), name='health'),
     path('companies/', CompanyListView.as_view(), name='company-list'),
     path('companies/<int:pk>/', CompanyDetailView.as_view(), name='company-detail'),
     path('clients/', ClientListCreateView.as_view(), name='client-list'),

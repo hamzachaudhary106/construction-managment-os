@@ -3,7 +3,8 @@ from .views import (
     ReportsOverviewView, ProjectDashboardView, ProjectHistoryView, FinancialReportView,
     PendingBillsReportView, CashFlowReportView, CashFlowForecastView,
     PayablesAgingView, ExportReportView, DashboardSummaryView, WHTReportView,
-    CompanyDashboardView, CostForecastView,
+    CompanyDashboardView, CostForecastView, ExportReportSendWhatsAppView,
+    ClientOverviewView, ClientProjectDetailView,
 )
 
 urlpatterns = [
@@ -20,4 +21,7 @@ urlpatterns = [
     path('payables-aging/', PayablesAgingView.as_view(), name='payables-aging'),
     path('wht/', WHTReportView.as_view(), name='wht-report'),
     path('export/', ExportReportView.as_view(), name='export-report'),
+    path('export/send-whatsapp/', ExportReportSendWhatsAppView.as_view(), name='export-report-send-whatsapp'),
+    path('client/overview/', ClientOverviewView.as_view(), name='client-overview'),
+    path('client/projects/<int:project_id>/', ClientProjectDetailView.as_view(), name='client-project-detail'),
 ]

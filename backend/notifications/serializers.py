@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Notification, NotificationSettings
+from .models import Notification, NotificationSettings, WhatsAppLog
 
 
 class NotificationSerializer(serializers.ModelSerializer):
@@ -18,3 +18,9 @@ class NotificationSettingsSerializer(serializers.ModelSerializer):
             'whatsapp_transfers',
             'whatsapp_wht',
         ]
+
+
+class WhatsAppLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = WhatsAppLog
+        fields = ['id', 'phone', 'context', 'message', 'success', 'provider', 'created_at']

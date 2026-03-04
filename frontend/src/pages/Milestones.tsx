@@ -89,28 +89,30 @@ export default function Milestones() {
             <button type="submit" className="btn-primary">Add</button>
           </form>
         )}
-        <table className="table">
-          <thead>
-            <tr><th>Project</th><th>Title</th><th>Due date</th><th>Status</th><th>Completed date</th><th style={{ width: '1%' }}>Actions</th></tr>
-          </thead>
-          <tbody>
-            {milestones.map((m) => (
-              <tr key={m.id}>
-                <td><Link to={`/projects/${m.project}/dashboard`} className="btn-action btn-action-primary">{projectName(m.project)}</Link></td>
-                <td><strong>{m.title}</strong></td>
-                <td>{m.due_date || '—'}</td>
-                <td><span className={m.completed ? 'badge badge-paid' : 'badge badge-pending'}>{m.completed ? 'Completed' : 'Pending'}</span></td>
-                <td>{m.completed_date || '—'}</td>
-                <td>
-                  <div className="table-actions">
-                    <button type="button" className={m.completed ? 'btn-action' : 'btn-action btn-action-primary'} onClick={() => toggleComplete(m)}>{m.completed ? 'Mark incomplete' : 'Mark complete'}</button>
-                    <button type="button" className="btn-action btn-action-danger" onClick={() => deleteMilestone(m.id)}>Delete</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="table-responsive">
+          <table className="table">
+            <thead>
+              <tr><th>Project</th><th>Title</th><th>Due date</th><th>Status</th><th>Completed date</th><th style={{ width: '1%' }}>Actions</th></tr>
+            </thead>
+            <tbody>
+              {milestones.map((m) => (
+                <tr key={m.id}>
+                  <td><Link to={`/projects/${m.project}/dashboard`} className="btn-action btn-action-primary">{projectName(m.project)}</Link></td>
+                  <td><strong>{m.title}</strong></td>
+                  <td>{m.due_date || '—'}</td>
+                  <td><span className={m.completed ? 'badge badge-paid' : 'badge badge-pending'}>{m.completed ? 'Completed' : 'Pending'}</span></td>
+                  <td>{m.completed_date || '—'}</td>
+                  <td>
+                    <div className="table-actions">
+                      <button type="button" className={m.completed ? 'btn-action' : 'btn-action btn-action-primary'} onClick={() => toggleComplete(m)}>{m.completed ? 'Mark incomplete' : 'Mark complete'}</button>
+                      <button type="button" className="btn-action btn-action-danger" onClick={() => deleteMilestone(m.id)}>Delete</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {milestones.length === 0 && !showForm && <p className="muted">No milestones.</p>}
       </Card>
     </>

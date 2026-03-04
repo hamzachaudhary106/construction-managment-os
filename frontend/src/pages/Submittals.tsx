@@ -116,25 +116,27 @@ export default function Submittals() {
             <button type="submit" className="btn-primary">Add</button>
           </form>
         )}
-        <table className="table">
-          <thead>
-            <tr><th>Project</th><th>Number</th><th>Title</th><th>Type</th><th>Status</th><th>Submitted</th><th>Approved</th><th>Actions</th></tr>
-          </thead>
-          <tbody>
-            {items.map((i) => (
-              <tr key={i.id}>
-                <td>{i.project_name ?? projectName(i.project)}</td>
-                <td>{i.submittal_number || `#${i.id}`}</td>
-                <td><strong>{i.title}</strong></td>
-                <td>{i.submittal_type_display ?? i.submittal_type}</td>
-                <td><span className="badge badge-active">{i.status_display ?? i.status}</span></td>
-                <td>{i.submitted_date || '—'}</td>
-                <td>{i.approved_date || '—'}</td>
-                <td><button type="button" className="btn-action btn-action-danger" onClick={() => deleteItem(i.id)}>Delete</button></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="table-responsive">
+          <table className="table table-mobile-stack">
+            <thead>
+              <tr><th>Project</th><th>Number</th><th>Title</th><th>Type</th><th>Status</th><th>Submitted</th><th>Approved</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              {items.map((i) => (
+                <tr key={i.id}>
+                  <td>{i.project_name ?? projectName(i.project)}</td>
+                  <td>{i.submittal_number || `#${i.id}`}</td>
+                  <td><strong>{i.title}</strong></td>
+                  <td>{i.submittal_type_display ?? i.submittal_type}</td>
+                  <td><span className="badge badge-active">{i.status_display ?? i.status}</span></td>
+                  <td>{i.submitted_date || '—'}</td>
+                  <td>{i.approved_date || '—'}</td>
+                  <td><button type="button" className="btn-action btn-action-danger" onClick={() => deleteItem(i.id)}>Delete</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {items.length === 0 && <div className="empty-state">No submittals yet.</div>}
       </Card>
     </>

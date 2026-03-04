@@ -142,29 +142,31 @@ export default function Guarantees() {
             <button type="submit" className="btn-primary">{editingId ? 'Update' : 'Create'}</button>
           </form>
         )}
-        <table className="table">
-          <thead>
-            <tr><th>Project</th><th>Type</th><th>Bank</th><th className="num">Amount</th><th>Valid from</th><th>Valid to</th><th>Actions</th></tr>
-          </thead>
-          <tbody>
-            {list.map((g) => (
-              <tr key={g.id}>
-                <td>{projectName(g.project)}</td>
-                <td><span className="badge badge-active">{g.guarantee_type_display ?? g.guarantee_type}</span></td>
-                <td>{g.bank_name}</td>
-                <td className="num">{formatRs(g.amount)}</td>
-                <td>{g.validity_from}</td>
-                <td>{g.validity_to}</td>
-                <td>
-                  <div className="table-actions">
-                    <button type="button" className="btn-action" onClick={() => openEdit(g)}>Edit</button>
-                    <button type="button" className="btn-action btn-action-danger" onClick={() => deleteGuarantee(g.id, g.bank_name)}>Delete</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="table-responsive">
+          <table className="table table-mobile-stack">
+            <thead>
+              <tr><th>Project</th><th>Type</th><th>Bank</th><th className="num">Amount</th><th>Valid from</th><th>Valid to</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              {list.map((g) => (
+                <tr key={g.id}>
+                  <td>{projectName(g.project)}</td>
+                  <td><span className="badge badge-active">{g.guarantee_type_display ?? g.guarantee_type}</span></td>
+                  <td>{g.bank_name}</td>
+                  <td className="num">{formatRs(g.amount)}</td>
+                  <td>{g.validity_from}</td>
+                  <td>{g.validity_to}</td>
+                  <td>
+                    <div className="table-actions">
+                      <button type="button" className="btn-action" onClick={() => openEdit(g)}>Edit</button>
+                      <button type="button" className="btn-action btn-action-danger" onClick={() => deleteGuarantee(g.id, g.bank_name)}>Delete</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {list.length === 0 && !showForm && <div className="empty-state">No bank guarantees yet.</div>}
       </Card>
     </>

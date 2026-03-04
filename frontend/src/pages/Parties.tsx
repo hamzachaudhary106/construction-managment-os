@@ -131,28 +131,30 @@ export default function Parties() {
             <button type="submit" className="btn-primary">{editingId ? 'Update' : 'Create'}</button>
           </form>
         )}
-        <table className="table">
-          <thead>
-            <tr><th>Type</th><th>Name</th><th>Contact</th><th>Phone</th><th>Email</th><th>Actions</th></tr>
-          </thead>
-          <tbody>
-            {list.map((p) => (
-              <tr key={p.id}>
-                <td><span className="badge badge-active">{p.party_type}</span></td>
-                <td><strong>{p.name}</strong></td>
-                <td>{p.contact_person || '—'}</td>
-                <td>{p.phone || '—'}</td>
-                <td>{p.email || '—'}</td>
-                <td>
-                  <div className="table-actions">
-                    <button type="button" className="btn-action" onClick={() => openEdit(p)}>Edit</button>
-                    <button type="button" className="btn-action btn-action-danger" onClick={() => deleteParty(p.id, p.name)}>Delete</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="table-responsive">
+          <table className="table table-mobile-stack">
+            <thead>
+              <tr><th>Type</th><th>Name</th><th>Contact</th><th>Phone</th><th>Email</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              {list.map((p) => (
+                <tr key={p.id}>
+                  <td><span className="badge badge-active">{p.party_type}</span></td>
+                  <td><strong>{p.name}</strong></td>
+                  <td>{p.contact_person || '—'}</td>
+                  <td>{p.phone || '—'}</td>
+                  <td>{p.email || '—'}</td>
+                  <td>
+                    <div className="table-actions">
+                      <button type="button" className="btn-action" onClick={() => openEdit(p)}>Edit</button>
+                      <button type="button" className="btn-action btn-action-danger" onClick={() => deleteParty(p.id, p.name)}>Delete</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {list.length === 0 && !showForm && <div className="empty-state">No parties yet. Add a subcontractor or supplier.</div>}
       </Card>
     </>

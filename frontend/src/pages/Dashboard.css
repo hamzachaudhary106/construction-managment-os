@@ -251,6 +251,41 @@
   .table td {
     padding: 12px var(--space-3);
   }
+  /* Mobile stacked table cards to avoid horizontal scroll */
+  .table-mobile-stack {
+    min-width: 0;
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+  }
+  .table-mobile-stack thead {
+    display: none;
+  }
+  .table-mobile-stack tbody {
+    display: block;
+  }
+  .table-mobile-stack tr {
+    display: block;
+    margin-bottom: var(--space-3);
+    border-radius: var(--radius-lg);
+    background: var(--bg-card);
+    box-shadow: var(--shadow-sm);
+  }
+  .table-mobile-stack td {
+    display: block;
+    padding: 8px var(--space-4);
+    border-bottom: 1px solid var(--border-light);
+    text-align: left;
+  }
+  .table-mobile-stack td.num {
+    text-align: right;
+  }
+  .table-mobile-stack td:last-child {
+    border-bottom: none;
+  }
+  .table-mobile-stack .table-actions {
+    margin-top: var(--space-2);
+  }
   .empty-state {
     padding: var(--space-8) var(--space-4);
     font-size: 15px;

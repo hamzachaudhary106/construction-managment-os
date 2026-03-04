@@ -56,7 +56,7 @@ export default function NotificationSettingsPage() {
       <Card>
         {error && <p className="text-danger" style={{ marginBottom: '1rem' }}>{error}</p>}
         <div style={{ overflowX: 'auto' }}>
-          <table className="table" style={{ minWidth: 480 }}>
+          <table className="table table-mobile-stack" style={{ minWidth: 480 }}>
             <thead>
               <tr>
                 <th>Notification type</th>

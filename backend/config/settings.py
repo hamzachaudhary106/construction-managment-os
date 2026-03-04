@@ -111,6 +111,10 @@ else:
 
 AUTH_USER_MODEL = 'core.User'
 
+# Django admin: login page and where to redirect after successful login
+LOGIN_URL = '/admin/login/'
+LOGIN_REDIRECT_URL = '/admin/'
+
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -143,7 +147,7 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 20,
+    'PAGE_SIZE': int(os.environ.get('DRF_PAGE_SIZE', 20)),
     # Basic rate limiting to protect APIs from abuse
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.UserRateThrottle',
@@ -194,9 +198,13 @@ SIMPLE_JWT = {
 SESSION_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
+# Save session on every request so admin login redirect persists
+SESSION_SAVE_EVERY_REQUEST = True
 
 CSRF_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_HTTPONLY = True
+# Allow admin login form POST from your frontend/admin domain (e.g. https://yourdomain.com)
+CSRF_TRUSTED_ORIGINS = [o.strip() for o in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if o.strip()]
 
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
@@ -218,3 +226,59 @@ if not DEBUG:
     if SECRET_KEY == 'dev-secret-key-change-in-production':
         # Fail fast if someone deploys with the default dev secret key
         raise RuntimeError('DJANGO_SECRET_KEY must be set to a strong value in production.')
+
+# Logging configuration: send structured logs to stdout with configurable levels
+LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
+DJANGO_LOG_LEVEL = os.environ.get('DJANGO_LOG_LEVEL', LOG_LEVEL)
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+        },
+        'simple': {
+            'format': '[%(levelname)s] %(message)s',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose' if not DEBUG else 'simple',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': LOG_LEVEL,
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': DJANGO_LOG_LEVEL,
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console'],
+            'level': DJANGO_LOG_LEVEL,
+            'propagate': False,
+        },
+        'django.server': {
+            'handlers': ['console'],
+            'level': DJANGO_LOG_LEVEL,
+            'propagate': False,
+        },
+        # Project-level logger; use logging.getLogger('construx360') in code
+        'construx360': {
+            'handlers': ['console'],
+            'level': LOG_LEVEL,
+            'propagate': False,
+        },
+    },
+}
+
+# When running behind a reverse proxy (nginx, load balancer), you can opt-in
+# to trusting X-Forwarded-* headers so that Django builds correct HTTPS URLs.
+if os.environ.get('USE_PROXY_HEADERS', 'false').lower() in ('1', 'true', 'yes'):
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    USE_X_FORWARDED_HOST = True

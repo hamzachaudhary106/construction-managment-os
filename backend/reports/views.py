@@ -1,11 +1,16 @@
 from datetime import date, timedelta
+from io import BytesIO
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework import status
 from django.db.models import Sum
 from django.db.models.functions import TruncMonth
 from django.http import HttpResponse
 from django.utils import timezone
+from django.db.models import Q
+
 from projects.models import Project, ProjectMilestone
 from finances.models import Income, Expense
 from bills.models import Bill
@@ -17,7 +22,7 @@ from transfers.models import FundTransfer
 from partners.models import ProjectInvestment, PartnerWithdrawal
 from documents.models import ProjectDocument
 from purchase_orders.models import PurchaseOrder
-from django.db.models import Q
+from notifications.utils import send_whatsapp_document_bytes
 
 
 class ReportsOverviewView(APIView):
@@ -50,6 +55,44 @@ class ReportsOverviewView(APIView):
                 'transfers_in': float(transfers_in),
                 'transfers_out': float(transfers_out),
                 'balance': balance,
+            })
+        return Response(result)
+
+
+class ClientOverviewView(APIView):
+    """
+    Summary of all projects for the current client user.
+    Only users with client_id set can access this.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        client_id = getattr(request.user, 'client_id', None)
+        if not client_id:
+            return Response({'detail': 'Client access only.'}, status=status.HTTP_403_FORBIDDEN)
+
+        projects = Project.objects.filter(is_deleted=False, client_id=client_id)
+        result = []
+        for project in projects:
+            total_income = Income.objects.filter(project=project).aggregate(Sum('amount'))['amount__sum'] or 0
+            total_expenses = Expense.objects.filter(project=project).aggregate(Sum('amount'))['amount__sum'] or 0
+            total_investments = ProjectInvestment.objects.filter(project=project).aggregate(Sum('amount'))['amount__sum'] or 0
+            total_withdrawals = PartnerWithdrawal.objects.filter(project=project).aggregate(Sum('amount'))['amount__sum'] or 0
+            transfers_in = FundTransfer.objects.filter(to_project=project).aggregate(Sum('amount'))['amount__sum'] or 0
+            transfers_out = FundTransfer.objects.filter(from_project=project).aggregate(Sum('amount'))['amount__sum'] or 0
+            balance = float(total_income) + float(total_investments) + float(transfers_in) - float(total_expenses) - float(total_withdrawals) - float(transfers_out)
+
+            result.append({
+                'id': project.id,
+                'name': project.name,
+                'status': project.status,
+                'total_income': float(total_income),
+                'total_expenses': float(total_expenses),
+                'total_investments': float(total_investments),
+                'total_withdrawals': float(total_withdrawals),
+                'transfers_in': float(transfers_in),
+                'transfers_out': float(transfers_out),
+                'balance': float(balance),
             })
         return Response(result)
 
@@ -122,6 +165,97 @@ class ProjectDashboardView(APIView):
                 'expected_payments': float(expected_payments),
                 'completed_payments': float(completed_payments),
             },
+        })
+
+
+class ClientProjectDetailView(APIView):
+    """
+    Detailed view for a single project for the current client:
+    financial summary, pending bills, approved variations, recent activity.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, project_id):
+        client_id = getattr(request.user, 'client_id', None)
+        if not client_id:
+            return Response({'detail': 'Client access only.'}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            project = Project.objects.get(pk=project_id, is_deleted=False, client_id=client_id)
+        except Project.DoesNotExist:
+            return Response({'detail': 'Project not found.'}, status=404)
+
+        total_income = Income.objects.filter(project=project).aggregate(Sum('amount'))['amount__sum'] or 0
+        total_expenses = Expense.objects.filter(project=project).aggregate(Sum('amount'))['amount__sum'] or 0
+        total_investments = ProjectInvestment.objects.filter(project=project).aggregate(Sum('amount'))['amount__sum'] or 0
+        total_withdrawals = PartnerWithdrawal.objects.filter(project=project).aggregate(Sum('amount'))['amount__sum'] or 0
+        transfers_in = FundTransfer.objects.filter(to_project=project).aggregate(Sum('amount'))['amount__sum'] or 0
+        transfers_out = FundTransfer.objects.filter(from_project=project).aggregate(Sum('amount'))['amount__sum'] or 0
+        balance = float(total_income) + float(total_investments) + float(transfers_in) - float(total_expenses) - float(total_withdrawals) - float(transfers_out)
+
+        bills_qs = Bill.objects.filter(project=project, is_deleted=False, status__in=['pending', 'overdue']).order_by('due_date')
+        pending_bills = [{
+            'id': b.id,
+            'description': b.description,
+            'amount': float(b.amount),
+            'due_date': str(b.due_date),
+            'status': b.status,
+        } for b in bills_qs[:200]]
+
+        variations_qs = Variation.objects.filter(project=project, status='approved').order_by('-variation_date', '-id')
+        approved_variations = [{
+            'id': v.id,
+            'title': v.title,
+            'amount': float(v.amount),
+            'variation_date': str(v.variation_date) if v.variation_date else '',
+            'description': v.description or '',
+        } for v in variations_qs[:200]]
+
+        events = []
+
+        def add(date_val, event_type, title, amount=None, extra=None):
+            if not date_val:
+                return
+            d = date_val.date() if hasattr(date_val, 'date') else date_val
+            events.append({
+                'date': d.isoformat() if d else None,
+                'type': event_type,
+                'title': title,
+                'amount': float(amount) if amount is not None else None,
+                'extra': extra,
+            })
+
+        for b in Bill.objects.filter(project=project, is_deleted=False).order_by('-due_date')[:50]:
+            add(b.due_date, 'bill', b.description or 'Bill', amount=b.amount, extra=b.status)
+        for v in variations_qs[:50]:
+            add(v.variation_date or v.created_at, 'variation', v.title or 'Variation', amount=v.amount, extra=v.status)
+        for t in FundTransfer.objects.filter(from_project=project).order_by('-transfer_date')[:25]:
+            add(t.transfer_date, 'transfer_out', f"Transfer out to {t.to_project.name}", amount=t.amount)
+        for t in FundTransfer.objects.filter(to_project=project).order_by('-transfer_date')[:25]:
+            add(t.transfer_date, 'transfer_in', f"Transfer in from {t.from_project.name}", amount=t.amount)
+
+        events = sorted(events, key=lambda e: (e['date'] or '', e['type']), reverse=True)[:50]
+
+        return Response({
+            'project': {
+                'id': project.id,
+                'name': project.name,
+                'status': project.status,
+                'start_date': str(project.start_date) if project.start_date else None,
+                'end_date': str(project.end_date) if hasattr(project, 'end_date') and project.end_date else None,
+            },
+            'financial': {
+                'total_income': float(total_income),
+                'total_expenses': float(total_expenses),
+                'total_investments': float(total_investments),
+                'total_withdrawals': float(total_withdrawals),
+                'transfers_in': float(transfers_in),
+                'transfers_out': float(transfers_out),
+                'balance': float(balance),
+            },
+            'pending_bills': pending_bills,
+            'approved_variations': approved_variations,
+            'recent_activity': events,
         })
 
 
@@ -423,7 +557,9 @@ class DashboardSummaryView(APIView):
         today = date.today()
         end_30 = today + timedelta(days=30)
         pf = _project_filter(request)
-        overdue_bills_count = Bill.objects.filter(is_deleted=False, status__in=['pending', 'overdue'], due_date__lt=today).filter(**pf).count()
+        # Only count bills explicitly marked as 'overdue' so the number
+        # matches what the Bills screen shows when filtering by status=overdue.
+        overdue_bills_count = Bill.objects.filter(is_deleted=False, status='overdue').filter(**pf).count()
         open_issues_count = Issue.objects.filter(status__in=['open', 'in_progress']).filter(**pf).count()
         guarantees_expiring_30_days = BankGuarantee.objects.filter(validity_to__gte=today, validity_to__lte=end_30).filter(**pf).count()
         pending_variations_count = Variation.objects.filter(status='pending').filter(**pf).count()
@@ -702,17 +838,18 @@ class ExportReportView(APIView):
 
     def _export_pdf(self, request, report_type, project_id):
         from reportlab.lib import colors
-        from reportlab.lib.pagesizes import letter
+        from reportlab.lib.pagesizes import A4
         from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
         from reportlab.lib.styles import getSampleStyleSheet
 
         fname = {'financial': 'financial', 'pending_bills': 'pending-bills', 'cash_flow': 'cash-flow'}.get(report_type, 'report')
         response = HttpResponse(content_type='application/pdf')
         response['Content-Disposition'] = f'attachment; filename={fname}.pdf'
-        doc = SimpleDocTemplate(response, pagesize=letter)
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4)
         elements = []
         styles = getSampleStyleSheet()
-        elements.append(Paragraph('Construx360 - Report', styles['Title']))
+        elements.append(Paragraph('Construx360 – Report', styles['Title']))
         elements.append(Spacer(1, 12))
 
         if report_type == 'financial':
@@ -738,14 +875,103 @@ class ExportReportView(APIView):
 
         t = Table(data)
         t.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0f172a')),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, 0), 10),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
-            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-            ('GRID', (0, 0), (-1, -1), 0.5, colors.black),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.whitesmoke),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.whitesmoke, colors.HexColor('#e5e7eb')]),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cbd5e1')),
         ]))
         elements.append(t)
+        elements.append(Spacer(1, 16))
+        elements.append(Paragraph('<font size="9" color="#6b7280">Generated by Construx360</font>', styles['Normal']))
         doc.build(elements)
+        pdf_bytes = buffer.getvalue()
+        buffer.close()
+        response.write(pdf_bytes)
         return response
+
+
+class ExportReportSendWhatsAppView(APIView):
+    """Send financial / pending-bills / cash-flow report PDF to current user's WhatsApp."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        report_type = request.data.get('type', 'financial')
+        format_type = request.data.get('format', 'pdf')
+        project_id = request.data.get('project_id')
+
+        if format_type != 'pdf':
+            return Response({'detail': 'Only PDF format is supported for WhatsApp.'}, status=400)
+        if report_type not in ('financial', 'pending_bills', 'cash_flow'):
+            return Response({'detail': 'Invalid report type.'}, status=400)
+
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import A4
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+        from reportlab.lib.styles import getSampleStyleSheet
+
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=A4)
+        elements = []
+        styles = getSampleStyleSheet()
+        title_map = {
+            'financial': 'Financial Summary',
+            'pending_bills': 'Pending & Overdue Bills',
+            'cash_flow': 'Cash Flow',
+        }
+        elements.append(Paragraph(f'Construx360 – {title_map.get(report_type, "Report")}', styles['Title']))
+        elements.append(Spacer(1, 12))
+
+        pid = int(project_id) if project_id else None
+        if report_type == 'financial':
+            data = [['Project', 'Total Income', 'Total Expenses', 'Net']]
+            projects = Project.objects.filter(is_deleted=False).filter(**_project_filter(request))
+            if pid:
+                projects = projects.filter(pk=pid)
+            for project in projects:
+                ti = Income.objects.filter(project=project).aggregate(Sum('amount'))['amount__sum'] or 0
+                te = Expense.objects.filter(project=project).aggregate(Sum('amount'))['amount__sum'] or 0
+                data.append([project.name, f'{float(ti):,.0f}', f'{float(te):,.0f}', f'{float(ti - te):,.0f}'])
+        elif report_type == 'cash_flow':
+            data = [['Month', 'Income', 'Expenses', 'Net']]
+            for row in ExportReportView()._cash_flow_data(request, pid):
+                data.append([row['month'], f'{row["income"]:,.0f}', f'{row["expenses"]:,.0f}', f'{row["net"]:,.0f}'])
+        else:
+            data = [['Project', 'Description', 'Amount', 'Due Date', 'Status']]
+            qs = Bill.objects.filter(is_deleted=False, status__in=['pending', 'overdue']).select_related('project').filter(**_project_filter(request))
+            if pid:
+                qs = qs.filter(project_id=pid)
+            for b in qs.order_by('due_date')[:200]:
+                data.append([b.project.name, b.description[:30], f'{float(b.amount):,.0f}', str(b.due_date), b.status])
+
+        t = Table(data)
+        t.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0f172a')),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 10),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 8),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.whitesmoke),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.whitesmoke, colors.HexColor('#e5e7eb')]),
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#cbd5e1')),
+        ]))
+        elements.append(t)
+        elements.append(Spacer(1, 16))
+        elements.append(Paragraph('<font size="9" color="#6b7280">Generated by Construx360</font>', styles['Normal']))
+        doc.build(elements)
+        pdf_bytes = buffer.getvalue()
+        buffer.close()
+
+        phone = (getattr(request.user, 'phone', None) or '').strip()
+        if not phone:
+            return Response({'detail': 'No WhatsApp phone set on your user profile.'}, status=400)
+
+        fname = {'financial': 'financial', 'pending_bills': 'pending-bills', 'cash_flow': 'cash-flow'}.get(report_type, 'report')
+        caption = f"{title_map.get(report_type, 'Report')} from Construx360."
+        ok = send_whatsapp_document_bytes(phone, pdf_bytes, f"{fname}.pdf", caption=caption)
+        if not ok:
+            return Response({'detail': 'Failed to send via WhatsApp. Check server WhatsApp configuration.'}, status=502)
+        return Response({'detail': 'Report sent to WhatsApp.'})

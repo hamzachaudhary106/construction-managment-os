@@ -140,39 +140,41 @@ export default function Variations() {
             <button type="submit" className="btn-primary">{editingId ? 'Update' : 'Create'}</button>
           </form>
         )}
-        <table className="table">
-          <thead>
-            <tr><th>Project</th><th>Title</th><th className="num">Amount</th><th>Status</th><th>Date</th><th>Actions</th></tr>
-          </thead>
-          <tbody>
-            {list.map((v) => (
-              <tr key={v.id}>
-                <td>{projectName(v.project)}</td>
-                <td><strong>{v.title}</strong></td>
-                <td className="num">{formatRs(v.amount)}</td>
-                <td>
-                  <select
-                    className={`status-select status-${v.status}`}
-                    value={v.status}
-                    onChange={(e) => updateVariationStatus(v.id, e.target.value)}
-                    aria-label={`Change status for ${v.title}`}
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="approved">Approved</option>
-                    <option value="rejected">Rejected</option>
-                  </select>
-                </td>
-                <td>{v.variation_date || '—'}</td>
-                <td>
-                  <div className="table-actions">
-                    <button type="button" className="btn-action" onClick={() => openEdit(v)}>Edit</button>
-                    <button type="button" className="btn-action btn-action-danger" onClick={() => deleteVariation(v.id, v.title)}>Delete</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="table-responsive">
+          <table className="table table-mobile-stack">
+            <thead>
+              <tr><th>Project</th><th>Title</th><th className="num">Amount</th><th>Status</th><th>Date</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              {list.map((v) => (
+                <tr key={v.id}>
+                  <td>{projectName(v.project)}</td>
+                  <td><strong>{v.title}</strong></td>
+                  <td className="num">{formatRs(v.amount)}</td>
+                  <td>
+                    <select
+                      className={`status-select status-${v.status}`}
+                      value={v.status}
+                      onChange={(e) => updateVariationStatus(v.id, e.target.value)}
+                      aria-label={`Change status for ${v.title}`}
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="approved">Approved</option>
+                      <option value="rejected">Rejected</option>
+                    </select>
+                  </td>
+                  <td>{v.variation_date || '—'}</td>
+                  <td>
+                    <div className="table-actions">
+                      <button type="button" className="btn-action" onClick={() => openEdit(v)}>Edit</button>
+                      <button type="button" className="btn-action btn-action-danger" onClick={() => deleteVariation(v.id, v.title)}>Delete</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {list.length === 0 && !showForm && <div className="empty-state">No variations yet.</div>}
       </Card>
     </>

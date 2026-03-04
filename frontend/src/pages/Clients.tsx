@@ -80,25 +80,27 @@ export default function Clients() {
             <button type="submit" className="btn-primary">{editingId ? 'Update' : 'Add'}</button>
           </form>
         )}
-        <table className="table">
-          <thead><tr><th>Name</th><th>Contact</th><th>Email</th><th>Phone</th><th>Actions</th></tr></thead>
-          <tbody>
-            {clients.map((c) => (
-              <tr key={c.id}>
-                <td><strong>{c.name}</strong></td>
-                <td>{c.contact_person || '—'}</td>
-                <td>{c.email || '—'}</td>
-                <td>{c.phone || '—'}</td>
-                <td>
-                  <div className="table-actions">
-                    <button type="button" className="btn-action" onClick={() => startEdit(c)}>Edit</button>
-                    <button type="button" className="btn-action btn-action-danger" onClick={() => deleteClient(c.id)}>Delete</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="table-responsive">
+          <table className="table table-mobile-stack">
+            <thead><tr><th>Name</th><th>Contact</th><th>Email</th><th>Phone</th><th>Actions</th></tr></thead>
+            <tbody>
+              {clients.map((c) => (
+                <tr key={c.id}>
+                  <td><strong>{c.name}</strong></td>
+                  <td>{c.contact_person || '—'}</td>
+                  <td>{c.email || '—'}</td>
+                  <td>{c.phone || '—'}</td>
+                  <td>
+                    <div className="table-actions">
+                      <button type="button" className="btn-action" onClick={() => startEdit(c)}>Edit</button>
+                      <button type="button" className="btn-action btn-action-danger" onClick={() => deleteClient(c.id)}>Delete</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {clients.length === 0 && !showForm && <div className="empty-state">No clients yet.</div>}
       </Card>
     </>

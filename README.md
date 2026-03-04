@@ -233,3 +233,11 @@ Demo data includes a company “Demo Construction Ltd”, three projects (e.g. R
 - Use a strong `DJANGO_SECRET_KEY` and keep `DB_*` credentials secure.
 - Run `python manage.py collectstatic` and serve static files via your web server.
 - Build the frontend: `cd frontend && npm run build`, then serve the `dist/` folder or mount it in Django.
+
+### Django admin when using one domain
+
+If you serve the app and the API from the **same domain** (e.g. `https://yourdomain.com`), the server must send **`/admin`** and **`/api`** to the Django backend. Otherwise `yourdomain.com/admin` is handled by the React app and it redirects to `/login`.
+
+- **Nginx:** Use a config like `deploy/nginx-example.conf`: add a `location /admin` block that `proxy_pass`es to your Django app (e.g. Gunicorn on port 8000). Same for `location /api`, `/static`, and `/media`.
+- After that, open **https://yourdomain.com/admin/** — you should see the Django admin login, not the app login.
+- Set `CSRF_TRUSTED_ORIGINS=https://yourdomain.com` in the backend `.env`.

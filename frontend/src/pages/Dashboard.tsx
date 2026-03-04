@@ -176,7 +176,7 @@ export default function Dashboard() {
                   </button>
                 )}
                 {summary.open_issues_count > 0 && (
-                  <button type="button" className="dashboard-alert-pill warning" onClick={() => navigate('/site')}>
+                  <button type="button" className="dashboard-alert-pill warning" onClick={() => navigate('/site-diary')}>
                     <span className="label">Open site issues</span>
                     <span className="value">{summary.open_issues_count}</span>
                   </button>
@@ -194,7 +194,7 @@ export default function Dashboard() {
                   </button>
                 )}
                 {summary.pending_variations_count > 0 && (
-                  <button type="button" className="dashboard-alert-pill neutral" onClick={() => navigate('/variations')}>
+                  <button type="button" className="dashboard-alert-pill neutral" onClick={() => navigate('/extra-work')}>
                     <span className="label">Pending variations</span>
                     <span className="value">{summary.pending_variations_count}</span>
                   </button>

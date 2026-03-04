@@ -202,156 +202,158 @@ export default function Payroll() {
 
         {period && (
           <>
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Employee</th>
-                  <th className="num">Basic</th>
-                  <th className="num">Allowances</th>
-                  <th className="num">OT hours</th>
-                  <th className="num">OT rate</th>
-                  <th className="num">Bonuses</th>
-                  <th className="num">Adv. recovery</th>
-                  <th className="num">Other deductions</th>
-                  <th className="num">Tax</th>
-                  <th className="num">Net salary</th>
-                  <th>Paid?</th>
-              <th>Paid date</th>
-              <th>Payslip</th>
-                </tr>
-              </thead>
-              <tbody>
-                {entries.map((e) => (
-                  <tr key={e.id}>
-                    <td><strong>{e.employee_name}</strong></td>
-                    <td className="num">
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={e.basic_salary}
-                        onChange={(ev) => updateEntryField(e.id, 'basic_salary', ev.target.value)}
-                        style={{ width: 90 }}
-                      />
-                    </td>
-                    <td className="num">
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={e.allowances}
-                        onChange={(ev) => updateEntryField(e.id, 'allowances', ev.target.value)}
-                        style={{ width: 90 }}
-                      />
-                    </td>
-                    <td className="num">
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={e.overtime_hours}
-                        onChange={(ev) => updateEntryField(e.id, 'overtime_hours', ev.target.value)}
-                        style={{ width: 70 }}
-                      />
-                    </td>
-                    <td className="num">
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={e.overtime_rate}
-                        onChange={(ev) => updateEntryField(e.id, 'overtime_rate', ev.target.value)}
-                        style={{ width: 90 }}
-                      />
-                    </td>
-                    <td className="num">
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={e.bonuses}
-                        onChange={(ev) => updateEntryField(e.id, 'bonuses', ev.target.value)}
-                        style={{ width: 90 }}
-                      />
-                    </td>
-                    <td className="num">
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={e.advance_recovery}
-                        onChange={(ev) => updateEntryField(e.id, 'advance_recovery', ev.target.value)}
-                        style={{ width: 90 }}
-                      />
-                    </td>
-                    <td className="num">
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={e.other_deductions}
-                        onChange={(ev) => updateEntryField(e.id, 'other_deductions', ev.target.value)}
-                        style={{ width: 90 }}
-                      />
-                    </td>
-                    <td className="num">
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={e.tax}
-                        onChange={(ev) => updateEntryField(e.id, 'tax', ev.target.value)}
-                        style={{ width: 90 }}
-                      />
-                    </td>
-                    <td className="num">{e.net_salary}</td>
-                    <td>
-                      <input
-                        type="checkbox"
-                        checked={e.is_paid}
-                        onChange={(ev) => updateEntryField(e.id, 'is_paid', ev.target.checked)}
-                      />
-                    </td>
-                    <td>
-                      <input
-                        type="date"
-                        value={e.paid_date || ''}
-                        onChange={(ev) => updateEntryField(e.id, 'paid_date', ev.target.value)}
-                      />
-                    </td>
-                    <td>
-                      <div className="table-actions">
-                        <button
-                          type="button"
-                          className="btn-action"
-                          onClick={async () => {
-                            try {
-                              const res = await client.get(`/employees/payroll-entries/${e.id}/payslip/`, { responseType: 'blob' });
-                              const url = window.URL.createObjectURL(res.data);
-                              const a = document.createElement('a');
-                              a.href = url;
-                              a.download = `payslip-${e.id}.pdf`;
-                              a.click();
-                              window.URL.revokeObjectURL(url);
-                            } catch (err) {
-                              toast.error(apiErrors(err)[0] || 'Download failed');
-                            }
-                          }}
-                        >
-                          Download
-                        </button>
-                        <button
-                          type="button"
-                          className="btn-action"
-                          onClick={async () => {
-                            try {
-                              await client.post(`/employees/payroll-entries/${e.id}/send-payslip-whatsapp/`);
-                              toast.success('Payslip sent via WhatsApp');
-                            } catch (err) {
-                              toast.error(apiErrors(err)[0] || 'Send failed');
-                            }
-                          }}
-                        >
-                          WhatsApp
-                        </button>
-                      </div>
-                    </td>
+            <div className="table-responsive">
+              <table className="table table-mobile-stack">
+                <thead>
+                  <tr>
+                    <th>Employee</th>
+                    <th className="num">Basic</th>
+                    <th className="num">Allowances</th>
+                    <th className="num">OT hours</th>
+                    <th className="num">OT rate</th>
+                    <th className="num">Bonuses</th>
+                    <th className="num">Adv. recovery</th>
+                    <th className="num">Other deductions</th>
+                    <th className="num">Tax</th>
+                    <th className="num">Net salary</th>
+                    <th>Paid?</th>
+                <th>Paid date</th>
+                <th>Payslip</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {entries.map((e) => (
+                    <tr key={e.id}>
+                      <td><strong>{e.employee_name}</strong></td>
+                      <td className="num">
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={e.basic_salary}
+                          onChange={(ev) => updateEntryField(e.id, 'basic_salary', ev.target.value)}
+                          style={{ width: 90 }}
+                        />
+                      </td>
+                      <td className="num">
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={e.allowances}
+                          onChange={(ev) => updateEntryField(e.id, 'allowances', ev.target.value)}
+                          style={{ width: 90 }}
+                        />
+                      </td>
+                      <td className="num">
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={e.overtime_hours}
+                          onChange={(ev) => updateEntryField(e.id, 'overtime_hours', ev.target.value)}
+                          style={{ width: 70 }}
+                        />
+                      </td>
+                      <td className="num">
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={e.overtime_rate}
+                          onChange={(ev) => updateEntryField(e.id, 'overtime_rate', ev.target.value)}
+                          style={{ width: 90 }}
+                        />
+                      </td>
+                      <td className="num">
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={e.bonuses}
+                          onChange={(ev) => updateEntryField(e.id, 'bonuses', ev.target.value)}
+                          style={{ width: 90 }}
+                        />
+                      </td>
+                      <td className="num">
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={e.advance_recovery}
+                          onChange={(ev) => updateEntryField(e.id, 'advance_recovery', ev.target.value)}
+                          style={{ width: 90 }}
+                        />
+                      </td>
+                      <td className="num">
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={e.other_deductions}
+                          onChange={(ev) => updateEntryField(e.id, 'other_deductions', ev.target.value)}
+                          style={{ width: 90 }}
+                        />
+                      </td>
+                      <td className="num">
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={e.tax}
+                          onChange={(ev) => updateEntryField(e.id, 'tax', ev.target.value)}
+                          style={{ width: 90 }}
+                        />
+                      </td>
+                      <td className="num">{e.net_salary}</td>
+                      <td>
+                        <input
+                          type="checkbox"
+                          checked={e.is_paid}
+                          onChange={(ev) => updateEntryField(e.id, 'is_paid', ev.target.checked)}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="date"
+                          value={e.paid_date || ''}
+                          onChange={(ev) => updateEntryField(e.id, 'paid_date', ev.target.value)}
+                        />
+                      </td>
+                      <td>
+                        <div className="table-actions">
+                          <button
+                            type="button"
+                            className="btn-action"
+                            onClick={async () => {
+                              try {
+                                const res = await client.get(`/employees/payroll-entries/${e.id}/payslip/`, { responseType: 'blob' });
+                                const url = window.URL.createObjectURL(res.data);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `payslip-${e.id}.pdf`;
+                                a.click();
+                                window.URL.revokeObjectURL(url);
+                              } catch (err) {
+                                toast.error(apiErrors(err)[0] || 'Download failed');
+                              }
+                            }}
+                          >
+                            Download
+                          </button>
+                          <button
+                            type="button"
+                            className="btn-action"
+                            onClick={async () => {
+                              try {
+                                await client.post(`/employees/payroll-entries/${e.id}/send-payslip-whatsapp/`);
+                                toast.success('Payslip sent via WhatsApp');
+                              } catch (err) {
+                                toast.error(apiErrors(err)[0] || 'Send failed');
+                              }
+                            }}
+                          >
+                            WhatsApp
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
             {entries.length === 0 && <div className="empty-state">No employees found for this payroll. Add employees first.</div>}
             {entries.length > 0 && (
               <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'flex-end' }}>

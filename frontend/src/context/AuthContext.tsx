@@ -13,6 +13,8 @@ type User = {
   company?: number | null;
   company_name?: string | null;
   company_code?: string | null;
+  client_id?: number | null;
+  client_name?: string | null;
 };
 
 type AuthContextType = {
@@ -21,6 +23,8 @@ type AuthContextType = {
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
   isAdmin: boolean;
+   isClient: boolean;
+  refreshUser: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -28,6 +32,15 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const refreshUser = async () => {
+    try {
+      const res = await client.get('/auth/me/');
+      setUser(res.data);
+    } catch {
+      setUser(null);
+    }
+  };
 
   useEffect(() => {
     client
@@ -39,8 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (username: string, password: string) => {
     await client.post('/auth/token/', { username, password });
-    const userRes = await client.get('/auth/me/');
-    setUser(userRes.data);
+    await refreshUser();
   };
 
   const logout = () => {
@@ -50,9 +62,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const isAdmin = user?.role === 'admin' || user?.is_staff === true;
+  const isClient = !!user && !isAdmin && (user.role === 'client' || !!user.client_id);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, isAdmin }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, isAdmin, isClient, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

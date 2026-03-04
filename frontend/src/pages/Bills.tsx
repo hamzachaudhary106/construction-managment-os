@@ -262,72 +262,74 @@ export default function Bills() {
             <button type="submit" className="btn-primary">Add</button>
           </form>
         )}
-        <table className="table">
-          <thead>
-            <tr>
-              <th style={{ width: 36 }}>
-                {pendingBills.length > 0 && (
-                  <input type="checkbox" checked={selectedIds.size === pendingBills.length && pendingBills.length > 0} onChange={toggleSelectAll} aria-label="Select all pending" />
-                )}
-              </th>
-              <th>Project</th>
-              <th>Billed to</th>
-              <th>Description</th>
-              <th className="num">Amount</th>
-              <th>Due</th>
-              <th>Expected pay</th>
-              <th>Status</th>
-              <th style={{ width: '1%' }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {bills.map((b) => (
-              <tr key={b.id}>
-                <td>
-                  {b.status !== 'paid' && (
-                    <input type="checkbox" checked={selectedIds.has(b.id)} onChange={() => toggleSelect(b.id)} aria-label={`Select bill ${b.id}`} />
+          <div className="table-responsive">
+            <table className="table table-mobile-stack">
+            <thead>
+              <tr>
+                <th style={{ width: 36 }}>
+                  {pendingBills.length > 0 && (
+                    <input type="checkbox" checked={selectedIds.size === pendingBills.length && pendingBills.length > 0} onChange={toggleSelectAll} aria-label="Select all pending" />
                   )}
-                </td>
-                <td>{projectName(b.project)}</td>
-                <td>
-                  {b.billed_to_name || '—'}
-                  {b.billed_to_phone && (
-                    <div className="muted" style={{ fontSize: '12px' }}>
-                      {b.billed_to_phone}
-                    </div>
-                  )}
-                </td>
-                <td>{b.description}</td>
-                <td className="num">{formatRs(b.amount)}</td>
-                <td>{b.due_date}</td>
-                <td>{b.expected_payment_date || '—'}</td>
-                <td>
-                  <select
-                    className={`status-select status-${b.status}`}
-                    value={b.status}
-                    onChange={(e) => updateStatus(b.id, e.target.value, e.target.value === 'paid' ? new Date().toISOString().slice(0, 10) : undefined)}
-                    aria-label={`Change status for ${b.description}`}
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="paid">Paid</option>
-                    <option value="overdue">Overdue</option>
-                  </select>
-                </td>
-                <td>
-                  <div className="table-actions">
-                    <button type="button" className="btn-action" onClick={() => downloadBillPdf(b.id)}>Download PDF</button>
-                    <button type="button" className="btn-action" onClick={() => sendBillPdfWhatsApp(b)}>Send PDF via WhatsApp</button>
-                    <button type="button" className="btn-action" onClick={() => openEdit(b)}>Edit</button>
-                    {b.status !== 'paid' && (
-                      <button type="button" className="btn-action btn-action-primary" onClick={() => updateStatus(b.id, 'paid', new Date().toISOString().slice(0, 10))}>Mark paid</button>
-                    )}
-                    <button type="button" className="btn-action btn-action-danger" onClick={() => deleteBill(b.id)}>Delete</button>
-                  </div>
-                </td>
+                </th>
+                <th>Project</th>
+                <th>Billed to</th>
+                <th>Description</th>
+                <th className="num">Amount</th>
+                <th>Due</th>
+                <th>Expected pay</th>
+                <th>Status</th>
+                <th style={{ width: '1%' }}>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {bills.map((b) => (
+                <tr key={b.id}>
+                  <td>
+                    {b.status !== 'paid' && (
+                      <input type="checkbox" checked={selectedIds.has(b.id)} onChange={() => toggleSelect(b.id)} aria-label={`Select bill ${b.id}`} />
+                    )}
+                  </td>
+                  <td>{projectName(b.project)}</td>
+                  <td>
+                    {b.billed_to_name || '—'}
+                    {b.billed_to_phone && (
+                      <div className="muted" style={{ fontSize: '12px' }}>
+                        {b.billed_to_phone}
+                      </div>
+                    )}
+                  </td>
+                  <td>{b.description}</td>
+                  <td className="num">{formatRs(b.amount)}</td>
+                  <td>{b.due_date}</td>
+                  <td>{b.expected_payment_date || '—'}</td>
+                  <td>
+                    <select
+                      className={`status-select status-${b.status}`}
+                      value={b.status}
+                      onChange={(e) => updateStatus(b.id, e.target.value, e.target.value === 'paid' ? new Date().toISOString().slice(0, 10) : undefined)}
+                      aria-label={`Change status for ${b.description}`}
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="paid">Paid</option>
+                      <option value="overdue">Overdue</option>
+                    </select>
+                  </td>
+                  <td>
+                    <div className="table-actions">
+                      <button type="button" className="btn-action" onClick={() => downloadBillPdf(b.id)}>Download PDF</button>
+                      <button type="button" className="btn-action" onClick={() => sendBillPdfWhatsApp(b)}>Send PDF via WhatsApp</button>
+                      <button type="button" className="btn-action" onClick={() => openEdit(b)}>Edit</button>
+                      {b.status !== 'paid' && (
+                        <button type="button" className="btn-action btn-action-primary" onClick={() => updateStatus(b.id, 'paid', new Date().toISOString().slice(0, 10))}>Mark paid</button>
+                      )}
+                      <button type="button" className="btn-action btn-action-danger" onClick={() => deleteBill(b.id)}>Delete</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {bills.length === 0 && <p className="muted">No bills.</p>}
         {editingBill && (
           <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'var(--neutral-50)', borderRadius: 'var(--radius)' }}>

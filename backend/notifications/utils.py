@@ -1,7 +1,10 @@
 """Helpers for sending notifications via WhatsApp."""
 import io
 import json
+import logging
 import urllib.request
+
+import requests
 
 from django.conf import settings
 
@@ -25,7 +28,7 @@ def _do_send_whatsapp(phone, title, message, link=''):
         else:
             body += f"\n\nLink: {base_url}{link}"
 
-    # 1) Optional Green API integration for testing
+    # 1) Green API integration (same style as green_test.py using requests)
     if getattr(settings, 'GREENAPI_ENABLED', False):
         instance_id = getattr(settings, 'GREENAPI_INSTANCE_ID', '')
         green_token = getattr(settings, 'GREENAPI_TOKEN', '')
@@ -36,16 +39,10 @@ def _do_send_whatsapp(phone, title, message, link=''):
                 "chatId": f"{phone}@c.us",  # Green API expects WhatsApp ID
                 "message": body,
             }
-            data = json.dumps(payload).encode("utf-8")
-            req = urllib.request.Request(
-                url,
-                data=data,
-                headers={"Content-Type": "application/json"},
-                method="POST",
-            )
             try:
-                urllib.request.urlopen(req, timeout=5)
-                return True
+                resp = requests.post(url, json=payload, timeout=10)
+                if 200 <= resp.status_code < 300:
+                    return True
             except Exception:
                 # Fall through to Cloud API if Green API fails
                 pass
@@ -154,8 +151,15 @@ def send_whatsapp_document_bytes(phone, pdf_bytes, filename, caption=''):
     """
     Upload PDF bytes to WhatsApp Media API and send as document to the given phone.
     Use this when you don't have a public URL (e.g. auth-required PDFs).
+
+    Prefers WhatsApp Cloud API when WHATSAPP_ENABLED is true; if that is
+    disabled but GREENAPI_ENABLED is true, falls back to Green API so all
+    document-sending flows continue to work for Green-only setups.
     """
     if not getattr(settings, 'WHATSAPP_ENABLED', False):
+        # Fallback: if only Green API is enabled, use that implementation instead.
+        if getattr(settings, 'GREENAPI_ENABLED', False):
+            return send_greenapi_document_bytes(phone, pdf_bytes, filename, caption)
         return False
     if not phone or not pdf_bytes:
         return False
@@ -209,48 +213,42 @@ def send_greenapi_document_bytes(phone, pdf_bytes, filename, caption=''):
     if not phone or not pdf_bytes:
         return False
 
+    logger = logging.getLogger('construx360')
+
     instance_id = getattr(settings, 'GREENAPI_INSTANCE_ID', '')
     green_token = getattr(settings, 'GREENAPI_TOKEN', '')
-    base_url = getattr(settings, 'GREENAPI_BASE_URL', 'https://api.green-api.com').rstrip('/')
-    if not (instance_id and green_token and base_url):
+    # For file uploads Green API recommends the media host explicitly
+    base_url = 'https://media.green-api.com'
+    if not (instance_id and green_token):
         return False
 
-    # Build multipart/form-data body
-    boundary = b'----GreenApiFormBoundary' + str(id(pdf_bytes)).encode('ascii')
-    body = io.BytesIO()
-
-    def _write_field(name: str, value: str):
-        body.write(b'--' + boundary + b'\r\n')
-        body.write(f'Content-Disposition: form-data; name="{name}"\r\n\r\n'.encode('utf-8'))
-        body.write(value.encode('utf-8'))
-        body.write(b'\r\n')
-
-    _write_field('chatId', f'{phone}@c.us')
-    if caption:
-        _write_field('caption', caption)
-
-    body.write(b'--' + boundary + b'\r\n')
-    body.write(b'Content-Disposition: form-data; name="file"; filename="' + (filename or 'document.pdf').encode('utf-8') + b'"\r\n')
-    body.write(b'Content-Type: application/pdf\r\n\r\n')
-    body.write(pdf_bytes if isinstance(pdf_bytes, bytes) else pdf_bytes.getvalue())
-    body.write(b'\r\n--' + boundary + b'--\r\n')
-
-    data = body.getvalue()
     url = f"{base_url}/waInstance{instance_id}/sendFileByUpload/{green_token}"
-    req = urllib.request.Request(
-        url,
-        data=data,
-        headers={
-            "Content-Type": f"multipart/form-data; boundary={boundary.decode('ascii')}",
-        },
-        method="POST",
-    )
+    files = {
+        "file": (
+            filename or "document.pdf",
+            pdf_bytes if isinstance(pdf_bytes, bytes) else pdf_bytes.getvalue(),
+            "application/pdf",
+        )
+    }
+    data = {"chatId": f"{phone}@c.us"}
+    if caption:
+        data["caption"] = caption
+
     try:
-        with urllib.request.urlopen(req, timeout=15) as resp:
-            # Best-effort; if Green API accepts it, consider it sent
-            resp.read()
-        return True
-    except Exception:
+        resp = requests.post(url, data=data, files=files, timeout=20)
+        if 200 <= resp.status_code < 300:
+            return True
+        # Log non-2xx responses so we can see exact Green API error in backend logs
+        try:
+            logger.warning("GreenAPI sendFileByUpload failed: status=%s body=%s", resp.status_code, resp.text)
+        except Exception:
+            pass
+        return False
+    except Exception as exc:
+        try:
+            logger.exception("GreenAPI sendFileByUpload exception: %s", exc)
+        except Exception:
+            pass
         return False
 
     # Send message with document id

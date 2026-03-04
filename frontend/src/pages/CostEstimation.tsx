@@ -532,7 +532,7 @@ export default function CostEstimation() {
       <div style={{ display: 'grid', gridTemplateColumns: selectedEstimate ? '1fr 2fr' : '1fr', gap: '1rem', marginTop: '1rem' }}>
         <Card title="Your scenarios">
           <div className="table-responsive">
-            <table className="table">
+            <table className="table table-mobile-stack">
               <thead><tr><th>Name</th><th>Version</th><th className="num">Total (PKR)</th><th>Actions</th></tr></thead>
               <tbody>
                 {estimates.map((est) => (
@@ -582,7 +582,7 @@ export default function CostEstimation() {
             </form>
 
             <div className="table-responsive">
-              <table className="table">
+              <table className="table table-mobile-stack">
                 <thead>
                   <tr><th>Category</th><th>Description</th><th className="num">Qty</th><th>Unit</th><th className="num">Rate (PKR)</th><th className="num">Amount (PKR)</th><th>Actions</th></tr>
                 </thead>

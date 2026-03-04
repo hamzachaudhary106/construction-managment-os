@@ -1,6 +1,8 @@
 from datetime import date
 from io import BytesIO
 
+import requests
+
 from django.http import HttpResponse
 from django.conf import settings as django_settings
 from rest_framework import generics
@@ -11,10 +13,26 @@ from rest_framework.filters import SearchFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
 from audit.log import log
-from notifications.models import NotificationSettings
+from notifications.models import NotificationSettings, WhatsAppLog
 from notifications.utils import send_whatsapp_document_bytes, send_greenapi_document_bytes, send_whatsapp_to_phone
 from .models import Bill
 from .serializers import BillSerializer
+
+
+def _normalize_phone_for_whatsapp(raw):
+    """
+    Normalize a phone number into an international format that Green API / WhatsApp expects.
+    For now we:
+    - Strip spaces and '+'.
+    - If it starts with '0' and looks like a local PK mobile (e.g. 0333...), convert to 92xxx.
+    """
+    if not raw:
+        return ''
+    s = ''.join(ch for ch in str(raw) if ch.isdigit() or ch == '+').lstrip('+')
+    if s.startswith('0') and len(s) >= 10:
+        # Heuristic: treat as Pakistani local mobile and convert 0XXX... -> 92XXX...
+        s = '92' + s[1:]
+    return s
 
 
 def _ensure_bill_status(bill):
@@ -379,9 +397,10 @@ class BillSendPDFWhatsAppView(APIView):
             if bill.project.company_id != request.user.company_id:
                 return Response({'detail': 'Not found.'}, status=404)
 
-        phone = (bill.billed_to_phone or '').strip()
+        raw_phone = (bill.billed_to_phone or '').strip()
+        phone = _normalize_phone_for_whatsapp(raw_phone)
         if not phone:
-            return Response({'detail': 'No WhatsApp number set for this bill (billed to phone).'}, status=400)
+            return Response({'detail': 'No valid WhatsApp number set for this bill (use format 92333XXXXXXX).'}, status=400)
 
         whatsapp_enabled = getattr(django_settings, 'WHATSAPP_ENABLED', False)
         green_enabled = getattr(django_settings, 'GREENAPI_ENABLED', False)
@@ -390,21 +409,7 @@ class BillSendPDFWhatsAppView(APIView):
 
         caption = f"Bill for project {bill.project.name} – Rs {bill.amount} (due {bill.due_date})."
 
-        # If WhatsApp Cloud API is enabled, send the real PDF document via Cloud Media API
-        if whatsapp_enabled:
-            try:
-                pdf_bytes = _build_bill_pdf_bytes(bill)
-            except Exception as e:
-                return Response(
-                    {'detail': 'PDF generation failed: %s' % str(e)},
-                    status=500,
-                )
-            ok = send_whatsapp_document_bytes(phone, pdf_bytes, f"bill-{bill.id}.pdf", caption=caption)
-            if not ok:
-                return Response({'detail': 'Failed to send via WhatsApp. Check server WhatsApp configuration.'}, status=502)
-            return Response({'detail': 'PDF sent to WhatsApp.'})
-
-        # Otherwise, use Green API to upload and send the PDF document
+        # Build PDF once; we'll try Cloud API first (if enabled), then Green API as a fallback.
         try:
             pdf_bytes = _build_bill_pdf_bytes(bill)
         except Exception as e:
@@ -412,10 +417,43 @@ class BillSendPDFWhatsAppView(APIView):
                 {'detail': 'PDF generation failed: %s' % str(e)},
                 status=500,
             )
-        ok = send_greenapi_document_bytes(phone, pdf_bytes, f"bill-{bill.id}.pdf", caption=caption)
+
+        ok = False
+
+        # 1) Try WhatsApp Cloud API if enabled (this may itself fall back to Green API when only Green is enabled)
+        if whatsapp_enabled:
+            ok = send_whatsapp_document_bytes(phone, pdf_bytes, f"bill-{bill.id}.pdf", caption=caption)
+
+        # 2) If Cloud failed or is disabled, and Green API is enabled, try Green API document upload directly
+        if (not ok) and green_enabled:
+            ok = send_greenapi_document_bytes(phone, pdf_bytes, f"bill-{bill.id}.pdf", caption=caption)
+
+        # 3) Final safety net: if document upload failed for any reason, at least send a text WhatsApp alert via Green API
+        if (not ok) and green_enabled:
+            title = 'Bill PDF notification'
+            message = caption
+            link = '/bills'
+            ok = send_whatsapp_to_phone(phone, title, message, link)
+
+        # Log this attempt in WhatsAppLog so user can audit from Notifications tab
+        provider = WhatsAppLog.Provider.UNKNOWN
+        if whatsapp_enabled and not green_enabled:
+            provider = WhatsAppLog.Provider.CLOUD
+        elif green_enabled and not whatsapp_enabled:
+            provider = WhatsAppLog.Provider.GREEN
+
+        WhatsAppLog.objects.create(
+            user=request.user,
+            phone=phone,
+            context='bill_pdf',
+            message=caption,
+            success=ok,
+            provider=provider,
+        )
+
         if not ok:
             return Response({'detail': 'Failed to send via WhatsApp. Check server WhatsApp configuration.'}, status=502)
-        return Response({'detail': 'PDF sent to WhatsApp.'})
+        return Response({'detail': 'PDF (or text alert) sent to WhatsApp.'})
 
 
 class BillSendWhatsAppView(APIView):
@@ -435,9 +473,10 @@ class BillSendWhatsAppView(APIView):
             if bill.project.company_id != request.user.company_id:
                 return Response({'detail': 'Not found.'}, status=404)
 
-        phone = (bill.billed_to_phone or '').strip()
+        raw_phone = (bill.billed_to_phone or '').strip()
+        phone = _normalize_phone_for_whatsapp(raw_phone)
         if not phone:
-            return Response({'detail': 'No WhatsApp number set for this bill (billed to phone).'}, status=400)
+            return Response({'detail': 'No valid WhatsApp number set for this bill (use format 92333XXXXXXX).'}, status=400)
 
         title = 'Bill notification'
         message = f'Bill "{bill.description}" for project {bill.project.name} – Rs {bill.amount} (due {bill.due_date}).'
@@ -445,6 +484,15 @@ class BillSendWhatsAppView(APIView):
         link = '/bills'
 
         ok = send_whatsapp_to_phone(phone, title, message, link)
+
+        WhatsAppLog.objects.create(
+            user=request.user,
+            phone=phone,
+            context='bill_text',
+            message=message,
+            success=ok,
+            provider=WhatsAppLog.Provider.GREEN if getattr(django_settings, 'GREENAPI_ENABLED', False) and not getattr(django_settings, 'WHATSAPP_ENABLED', False) else WhatsAppLog.Provider.UNKNOWN,
+        )
         if not ok:
             return Response({'detail': 'Failed to send WhatsApp alert. Check server WhatsApp/Green API configuration.'}, status=502)
         return Response({'detail': 'WhatsApp alert sent.'})

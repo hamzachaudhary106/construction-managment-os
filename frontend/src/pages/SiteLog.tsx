@@ -90,57 +90,61 @@ export default function SiteLog() {
           </form>
         )}
         {tab === 'logs' && (
-          <table className="table">
-            <thead><tr><th>Project</th><th>Date</th><th>Weather</th><th>Manpower</th><th>Work done</th><th>Actions</th></tr></thead>
-            <tbody>
-              {logs.map((l) => (
-                <tr key={l.id}>
-                  <td>{projectName(l.project)}</td>
-                  <td>{l.log_date}</td>
-                  <td>{l.weather || '—'}</td>
-                  <td>{l.manpower_count ?? '—'}</td>
-                  <td style={{ maxWidth: 200 }}>{l.work_done ? `${l.work_done.slice(0, 80)}${l.work_done.length > 80 ? '…' : ''}` : '—'}</td>
-                  <td>
-                    <div className="table-actions">
-                      <button type="button" className="btn-action btn-action-danger" onClick={() => deleteLog(l.id)}>Delete</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="table-responsive">
+            <table className="table table-mobile-stack">
+              <thead><tr><th>Project</th><th>Date</th><th>Weather</th><th>Manpower</th><th>Work done</th><th>Actions</th></tr></thead>
+              <tbody>
+                {logs.map((l) => (
+                  <tr key={l.id}>
+                    <td>{projectName(l.project)}</td>
+                    <td>{l.log_date}</td>
+                    <td>{l.weather || '—'}</td>
+                    <td>{l.manpower_count ?? '—'}</td>
+                    <td style={{ maxWidth: 200 }}>{l.work_done ? `${l.work_done.slice(0, 80)}${l.work_done.length > 80 ? '…' : ''}` : '—'}</td>
+                    <td>
+                      <div className="table-actions">
+                        <button type="button" className="btn-action btn-action-danger" onClick={() => deleteLog(l.id)}>Delete</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
         {tab === 'issues' && (
-          <table className="table">
-            <thead><tr><th>Project</th><th>Title</th><th>Status</th><th>Severity</th><th>NCR</th><th>Actions</th></tr></thead>
-            <tbody>
-              {issues.map((i) => (
-                <tr key={i.id}>
-                  <td>{projectName(i.project)}</td>
-                  <td><strong>{i.title}</strong></td>
-                  <td>
-                    <select
-                      className={`status-select status-${i.status}`}
-                      value={i.status}
-                      onChange={(e) => updateIssueStatus(i.id, e.target.value)}
-                      aria-label={`Change status for ${i.title}`}
-                    >
-                      <option value="open">Open</option>
-                      <option value="in_progress">In progress</option>
-                      <option value="closed">Closed</option>
-                    </select>
-                  </td>
-                  <td><span className="badge badge-active">{i.severity_display ?? i.severity}</span></td>
-                  <td>{i.is_ncr ? 'Yes' : '—'}</td>
-                  <td>
-                    <div className="table-actions">
-                      <button type="button" className="btn-action btn-action-danger" onClick={() => deleteIssue(i.id)}>Delete</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="table-responsive">
+            <table className="table table-mobile-stack">
+              <thead><tr><th>Project</th><th>Title</th><th>Status</th><th>Severity</th><th>NCR</th><th>Actions</th></tr></thead>
+              <tbody>
+                {issues.map((i) => (
+                  <tr key={i.id}>
+                    <td>{projectName(i.project)}</td>
+                    <td><strong>{i.title}</strong></td>
+                    <td>
+                      <select
+                        className={`status-select status-${i.status}`}
+                        value={i.status}
+                        onChange={(e) => updateIssueStatus(i.id, e.target.value)}
+                        aria-label={`Change status for ${i.title}`}
+                      >
+                        <option value="open">Open</option>
+                        <option value="in_progress">In progress</option>
+                        <option value="closed">Closed</option>
+                      </select>
+                    </td>
+                    <td><span className="badge badge-active">{i.severity_display ?? i.severity}</span></td>
+                    <td>{i.is_ncr ? 'Yes' : '—'}</td>
+                    <td>
+                      <div className="table-actions">
+                        <button type="button" className="btn-action btn-action-danger" onClick={() => deleteIssue(i.id)}>Delete</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
         {((tab === 'logs' && logs.length === 0) || (tab === 'issues' && issues.length === 0)) && <div className="empty-state">No data yet.</div>}
       </Card>

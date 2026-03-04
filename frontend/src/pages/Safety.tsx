@@ -114,37 +114,41 @@ export default function Safety() {
           </form>
         )}
         {tab === 'incidents' && (
-          <table className="table">
-            <thead><tr><th>Project</th><th>Title</th><th>Date</th><th>Severity</th><th>Location</th><th>Actions</th></tr></thead>
-            <tbody>
-              {incidents.map((i) => (
-                <tr key={i.id}>
-                  <td>{i.project_name ?? projectName(i.project)}</td>
-                  <td><strong>{i.title}</strong></td>
-                  <td>{i.incident_date}</td>
-                  <td><span className="badge badge-active">{i.severity_display ?? i.severity}</span></td>
-                  <td>{i.location || '—'}</td>
-                  <td><button type="button" className="btn-action btn-action-danger" onClick={() => deleteIncident(i.id)}>Delete</button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="table-responsive">
+            <table className="table table-mobile-stack">
+              <thead><tr><th>Project</th><th>Title</th><th>Date</th><th>Severity</th><th>Location</th><th>Actions</th></tr></thead>
+              <tbody>
+                {incidents.map((i) => (
+                  <tr key={i.id}>
+                    <td>{i.project_name ?? projectName(i.project)}</td>
+                    <td><strong>{i.title}</strong></td>
+                    <td>{i.incident_date}</td>
+                    <td><span className="badge badge-active">{i.severity_display ?? i.severity}</span></td>
+                    <td>{i.location || '—'}</td>
+                    <td><button type="button" className="btn-action btn-action-danger" onClick={() => deleteIncident(i.id)}>Delete</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
         {tab === 'talks' && (
-          <table className="table">
-            <thead><tr><th>Project</th><th>Topic</th><th>Date</th><th>Attendees</th><th>Actions</th></tr></thead>
-            <tbody>
-              {talks.map((t) => (
-                <tr key={t.id}>
-                  <td>{t.project_name ?? projectName(t.project)}</td>
-                  <td><strong>{t.topic}</strong></td>
-                  <td>{t.talk_date}</td>
-                  <td>{t.attendees_count ?? '—'}</td>
-                  <td><button type="button" className="btn-action btn-action-danger" onClick={() => deleteTalk(t.id)}>Delete</button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="table-responsive">
+            <table className="table table-mobile-stack">
+              <thead><tr><th>Project</th><th>Topic</th><th>Date</th><th>Attendees</th><th>Actions</th></tr></thead>
+              <tbody>
+                {talks.map((t) => (
+                  <tr key={t.id}>
+                    <td>{t.project_name ?? projectName(t.project)}</td>
+                    <td><strong>{t.topic}</strong></td>
+                    <td>{t.talk_date}</td>
+                    <td>{t.attendees_count ?? '—'}</td>
+                    <td><button type="button" className="btn-action btn-action-danger" onClick={() => deleteTalk(t.id)}>Delete</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
         {((tab === 'incidents' && incidents.length === 0) || (tab === 'talks' && talks.length === 0)) && <div className="empty-state">No data yet.</div>}
       </Card>

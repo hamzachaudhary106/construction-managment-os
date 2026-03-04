@@ -116,27 +116,29 @@ export default function Documents() {
             <button type="submit" className="btn-primary" disabled={submitting}>{submitting ? 'Adding…' : 'Add'}</button>
           </form>
         )}
-        <table className="table">
-          <thead>
-            <tr><th>Project</th><th>Title</th><th>Type</th><th>Revision</th><th>File</th><th>Actions</th></tr>
-          </thead>
-          <tbody>
-            {list.map((d) => (
-              <tr key={d.id}>
-                <td>{projectName(d.project)}</td>
-                <td><strong>{d.title}</strong></td>
-                <td>{d.doc_type_display ?? d.doc_type}</td>
-                <td>{d.revision || '—'}</td>
-                <td>{d.file ? <a href={fileUrl(d.file) ?? '#'} target="_blank" rel="noreferrer">View</a> : '—'}</td>
-                <td>
-                  <div className="table-actions">
-                    <button type="button" className="btn-action btn-action-danger" onClick={() => deleteDoc(d.id, d.title)}>Delete</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="table-responsive">
+          <table className="table table-mobile-stack">
+            <thead>
+              <tr><th>Project</th><th>Title</th><th>Type</th><th>Revision</th><th>File</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              {list.map((d) => (
+                <tr key={d.id}>
+                  <td>{projectName(d.project)}</td>
+                  <td><strong>{d.title}</strong></td>
+                  <td>{d.doc_type_display ?? d.doc_type}</td>
+                  <td>{d.revision || '—'}</td>
+                  <td>{d.file ? <a href={fileUrl(d.file) ?? '#'} target="_blank" rel="noreferrer">View</a> : '—'}</td>
+                  <td>
+                    <div className="table-actions">
+                      <button type="button" className="btn-action btn-action-danger" onClick={() => deleteDoc(d.id, d.title)}>Delete</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {list.length === 0 && !showForm && <div className="empty-state">No documents yet.</div>}
       </Card>
     </>

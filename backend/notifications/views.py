@@ -3,8 +3,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Notification, NotificationSettings
-from .serializers import NotificationSerializer, NotificationSettingsSerializer
+from .models import Notification, NotificationSettings, WhatsAppLog
+from .serializers import NotificationSerializer, NotificationSettingsSerializer, WhatsAppLogSerializer
 from .utils import send_notification_whatsapp
 
 
@@ -67,3 +67,12 @@ class NotificationResendView(APIView):
 
         sent = send_notification_whatsapp(request.user, n.title, n.message, n.link, channel=channel)
         return Response({"sent": sent})
+
+
+class WhatsAppLogListView(generics.ListAPIView):
+    """List of WhatsApp messages sent for the current user (audit log)."""
+    serializer_class = WhatsAppLogSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return WhatsAppLog.objects.filter(user=self.request.user)

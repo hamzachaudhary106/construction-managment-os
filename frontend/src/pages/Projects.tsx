@@ -124,43 +124,45 @@ export default function Projects() {
         {projects.length === 0 && !showForm ? (
           <p className="muted">No projects. Add one above.</p>
         ) : (
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Status</th>
-                <th>Dates</th>
-                <th style={{ width: '1%' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {projects.map((p) => (
-                <tr key={p.id}>
-                  <td><strong>{p.name}</strong></td>
-                  <td>
-                    <select
-                      className={`status-select status-${p.status}`}
-                      value={p.status}
-                      onChange={(e) => updateStatus(p.id, e.target.value)}
-                      aria-label={`Change status for ${p.name}`}
-                    >
-                      <option value="active">Active</option>
-                      <option value="on_hold">On Hold</option>
-                      <option value="completed">Completed</option>
-                    </select>
-                  </td>
-                  <td className="muted">{p.start_date || '—'} to {p.end_date || '—'}</td>
-                  <td>
-                    <div className="table-actions">
-                      <Link to={`/projects/${p.id}/dashboard`} className="btn-action btn-action-primary">Dashboard</Link>
-                      <button type="button" className="btn-action" onClick={() => { setEditingId(p.id); setForm({ name: p.name, description: p.description || '', status: p.status }); }}>Edit</button>
-                      <button type="button" className="btn-action btn-action-danger" onClick={() => deleteProject(p.id)}>Delete</button>
-                    </div>
-                  </td>
+          <div className="table-responsive">
+            <table className="table table-mobile-stack">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Status</th>
+                  <th>Dates</th>
+                  <th style={{ width: '1%' }}>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {projects.map((p) => (
+                  <tr key={p.id}>
+                    <td><strong>{p.name}</strong></td>
+                    <td>
+                      <select
+                        className={`status-select status-${p.status}`}
+                        value={p.status}
+                        onChange={(e) => updateStatus(p.id, e.target.value)}
+                        aria-label={`Change status for ${p.name}`}
+                      >
+                        <option value="active">Active</option>
+                        <option value="on_hold">On Hold</option>
+                        <option value="completed">Completed</option>
+                      </select>
+                    </td>
+                    <td className="muted">{p.start_date || '—'} to {p.end_date || '—'}</td>
+                    <td>
+                      <div className="table-actions">
+                        <Link to={`/projects/${p.id}/dashboard`} className="btn-action btn-action-primary">Dashboard</Link>
+                        <button type="button" className="btn-action" onClick={() => { setEditingId(p.id); setForm({ name: p.name, description: p.description || '', status: p.status }); }}>Edit</button>
+                        <button type="button" className="btn-action btn-action-danger" onClick={() => deleteProject(p.id)}>Delete</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </Card>
     </>

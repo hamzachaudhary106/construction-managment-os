@@ -1,9 +1,11 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
+import { ThemeProvider } from './context/ThemeContext';
 import Layout from './components/Layout';
 import ScrollToTop from './components/ScrollToTop';
 import Login from './pages/Login';
+import Pricing from './pages/Pricing';
 import Dashboard from './pages/Dashboard';
 import ProjectDashboard from './pages/ProjectDashboard';
 import Projects from './pages/Projects';
@@ -36,6 +38,9 @@ import Clients from './pages/Clients';
 import Employees from './pages/Employees';
 import Payroll from './pages/Payroll';
 import CostEstimation from './pages/CostEstimation';
+import Profile from './pages/Profile';
+import ClientDashboard from './pages/ClientDashboard';
+import ClientProjectDetail from './pages/ClientProjectDetail';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -49,6 +54,7 @@ function AppRoutes() {
     <>
       <ScrollToTop />
       <Routes>
+        <Route path="/pricing" element={<Pricing />} />
         <Route path="/login" element={<Login />} />
         <Route
           path="/"
@@ -60,6 +66,8 @@ function AppRoutes() {
         >
           <Route index element={<Navigate to="/dashboard" replace />} />
           <Route path="dashboard" element={<Dashboard />} />
+          <Route path="client/dashboard" element={<ClientDashboard />} />
+          <Route path="client/projects/:projectId" element={<ClientProjectDetail />} />
           <Route path="projects" element={<Projects />} />
           <Route path="projects/:projectId/dashboard" element={<ProjectDashboard />} />
           <Route path="milestones" element={<Milestones />} />
@@ -91,6 +99,7 @@ function AppRoutes() {
           <Route path="notifications" element={<Notifications />} />
           <Route path="notification-settings" element={<NotificationSettingsPage />} />
           <Route path="audit" element={<AuditLog />} />
+          <Route path="profile" element={<Profile />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
@@ -100,10 +109,12 @@ function AppRoutes() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <ToastProvider>
-        <AppRoutes />
-      </ToastProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <ToastProvider>
+          <AppRoutes />
+        </ToastProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

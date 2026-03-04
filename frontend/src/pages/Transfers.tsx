@@ -3,6 +3,8 @@ import PageHeader from '../components/PageHeader';
 import { Card } from '../components/Card';
 import client from '../api/client';
 import { formatRs } from '../utils/format';
+import { useToast } from '../context/ToastContext';
+import { apiErrors } from '../utils/apiErrors';
 import './Dashboard.css';
 
 type Project = { id: number; name: string };
@@ -18,6 +20,7 @@ type Transfer = {
 };
 
 export default function Transfers() {
+  const toast = useToast();
   const [projects, setProjects] = useState<Project[]>([]);
   const [transfers, setTransfers] = useState<Transfer[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,6 +71,33 @@ export default function Transfers() {
     setForm({ from_project: String(t.from_project), to_project: String(t.to_project), amount: t.amount, transfer_date: t.transfer_date, notes: t.notes || '' });
   };
 
+  const downloadReceipt = (id: number) => {
+    client
+      .get(`/transfers/${id}/receipt-pdf/`, { responseType: 'blob' })
+      .then((res) => {
+        const url = window.URL.createObjectURL(res.data);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `transfer-${id}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      })
+      .catch((err) => {
+        toast.error(apiErrors(err)[0] || 'Download failed');
+      });
+  };
+
+  const sendReceiptWhatsApp = (id: number) => {
+    client
+      .post(`/transfers/${id}/send-receipt-whatsapp/`)
+      .then(() => {
+        toast.success('Transfer receipt sent to WhatsApp');
+      })
+      .catch((err) => {
+        toast.error(apiErrors(err)[0] || 'Failed to send via WhatsApp');
+      });
+  };
+
   if (loading) return <div className="loading-state">Loading…</div>;
 
   return (
@@ -92,28 +122,32 @@ export default function Transfers() {
             <button type="submit" className="btn-primary" disabled={form.from_project === form.to_project && !!form.from_project}>{editingId ? 'Save' : 'Transfer'}</button>
           </form>
         )}
-        <table className="table">
-          <thead>
-            <tr><th>From</th><th>To</th><th className="num">Amount</th><th>Date</th><th>Notes</th><th>Actions</th></tr>
-          </thead>
-          <tbody>
-            {transfers.map((t) => (
-              <tr key={t.id}>
-                <td>{t.from_project_name ?? projects.find((p) => p.id === t.from_project)?.name ?? t.from_project}</td>
-                <td>{t.to_project_name ?? projects.find((p) => p.id === t.to_project)?.name ?? t.to_project}</td>
-                <td className="num">{formatRs(t.amount)}</td>
-                <td>{t.transfer_date}</td>
-                <td className="muted">{t.notes || '—'}</td>
-                <td>
-                  <div className="table-actions">
-                    <button type="button" className="btn-action" onClick={() => { startEdit(t); setShowForm(true); }}>Edit</button>
-                    <button type="button" className="btn-action btn-action-danger" onClick={() => deleteTransfer(t.id)}>Delete</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="table-responsive">
+          <table className="table table-mobile-stack">
+            <thead>
+              <tr><th>From</th><th>To</th><th className="num">Amount</th><th>Date</th><th>Notes</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              {transfers.map((t) => (
+                <tr key={t.id}>
+                  <td>{t.from_project_name ?? projects.find((p) => p.id === t.from_project)?.name ?? t.from_project}</td>
+                  <td>{t.to_project_name ?? projects.find((p) => p.id === t.to_project)?.name ?? t.to_project}</td>
+                  <td className="num">{formatRs(t.amount)}</td>
+                  <td>{t.transfer_date}</td>
+                  <td className="muted">{t.notes || '—'}</td>
+                  <td>
+                    <div className="table-actions">
+                      <button type="button" className="btn-action" onClick={() => { startEdit(t); setShowForm(true); }}>Edit</button>
+                      <button type="button" className="btn-action btn-action-danger" onClick={() => deleteTransfer(t.id)}>Delete</button>
+                      <button type="button" className="btn-action" onClick={() => downloadReceipt(t.id)}>Download receipt</button>
+                      <button type="button" className="btn-action" onClick={() => sendReceiptWhatsApp(t.id)}>WhatsApp receipt</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {transfers.length === 0 && !showForm && <p className="muted">No transfers yet.</p>}
       </Card>
     </>

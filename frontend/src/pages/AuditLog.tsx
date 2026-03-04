@@ -24,23 +24,25 @@ export default function AuditLog() {
     <>
       <PageHeader title="Audit Log" subtitle="Record of actions with user, timestamp, and details" />
       <Card>
-        <table className="table">
-          <thead>
-            <tr><th>Time</th><th>User</th><th>Action</th><th>Model</th><th>Object ID</th><th>Details</th></tr>
-          </thead>
-          <tbody>
-            {entries.map((e) => (
-              <tr key={e.id}>
-                <td className="muted" style={{ fontSize: '0.85rem' }}>{e.timestamp}</td>
-                <td>{e.username}</td>
-                <td>{e.action}</td>
-                <td>{e.model_name}</td>
-                <td>{e.object_id}</td>
-                <td style={{ fontSize: '0.85rem' }}>{Object.keys(e.details || {}).length ? JSON.stringify(e.details) : '—'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="table-responsive">
+          <table className="table table-mobile-stack">
+            <thead>
+              <tr><th>Time</th><th>User</th><th>Action</th><th>Model</th><th>Object ID</th><th>Details</th></tr>
+            </thead>
+            <tbody>
+              {entries.map((e) => (
+                <tr key={e.id}>
+                  <td className="muted" style={{ fontSize: '0.85rem' }}>{e.timestamp}</td>
+                  <td>{e.username}</td>
+                  <td>{e.action}</td>
+                  <td>{e.model_name}</td>
+                  <td>{e.object_id}</td>
+                  <td style={{ fontSize: '0.85rem' }}>{Object.keys(e.details || {}).length ? JSON.stringify(e.details) : '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {entries.length === 0 && <p className="muted">No audit entries yet.</p>}
       </Card>
     </>

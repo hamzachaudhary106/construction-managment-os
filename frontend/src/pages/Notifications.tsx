@@ -6,14 +6,27 @@ import { useToast } from '../context/ToastContext';
 import './Dashboard.css';
 
 type Notification = { id: number; title: string; message: string; notification_type: string; read: boolean; link: string; created_at: string };
+type WhatsAppLog = { id: number; phone: string; context: string; message: string; success: boolean; provider: string; created_at: string };
 
 export default function Notifications() {
   const toast = useToast();
   const [list, setList] = useState<Notification[]>([]);
+  const [logs, setLogs] = useState<WhatsAppLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [resendingId, setResendingId] = useState<number | null>(null);
 
-  const load = () => client.get('/notifications/').then((r) => setList(r.data?.results ?? r.data ?? [])).finally(() => setLoading(false));
+  const load = () => {
+    setLoading(true);
+    Promise.all([
+      client.get('/notifications/'),
+      client.get('/notifications/whatsapp-log/'),
+    ])
+      .then(([n, l]) => {
+        setList(n.data?.results ?? n.data ?? []);
+        setLogs(l.data?.results ?? l.data ?? []);
+      })
+      .finally(() => setLoading(false));
+  };
 
   useEffect(() => { load(); }, []);
 
@@ -45,7 +58,7 @@ export default function Notifications() {
 
   return (
     <>
-      <PageHeader title="Notifications" subtitle="Alerts for due bills, transfers, and milestones" />
+      <PageHeader title="Notifications" subtitle="Alerts and WhatsApp message log" />
       <Card>
         {list.some((n) => !n.read) && (
           <div style={{ marginBottom: '1rem' }}>
@@ -83,6 +96,41 @@ export default function Notifications() {
               </li>
             ))}
           </ul>
+        )}
+      </Card>
+
+      <Card title="WhatsApp message log" className="card-spaced">
+        {logs.length === 0 ? (
+          <p className="muted">No WhatsApp messages sent yet.</p>
+        ) : (
+          <div className="table-responsive">
+            <table className="table table-mobile-stack">
+              <thead>
+                <tr>
+                  <th>When</th>
+                  <th>Phone</th>
+                  <th>Context</th>
+                  <th>Preview</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {logs.map((log) => (
+                  <tr key={log.id}>
+                    <td>{log.created_at}</td>
+                    <td>{log.phone}</td>
+                    <td>{log.context || '—'}</td>
+                    <td>{log.message ? (log.message.length > 80 ? `${log.message.slice(0, 77)}…` : log.message) : '—'}</td>
+                    <td>
+                      <span className={`badge ${log.success ? 'badge-paid' : 'badge-overdue'}`}>
+                        {log.success ? 'Sent' : 'Failed'}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </Card>
     </>

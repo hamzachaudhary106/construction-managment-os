@@ -254,7 +254,7 @@ export default function Finances() {
             </ul>
           )}
           <div className="table-responsive">
-            <table className="table">
+            <table className="table table-mobile-stack">
               <thead><tr><th>Project</th><th>Category</th><th className="num">Amount</th><th>Actions</th></tr></thead>
               <tbody>
                 {budgets.map((b) => (
@@ -319,7 +319,7 @@ export default function Finances() {
             </ul>
           )}
           <div className="table-responsive">
-            <table className="table">
+            <table className="table table-mobile-stack">
               <thead><tr><th>Project</th><th>Category</th><th>Description</th><th>Date</th><th className="num">Amount</th><th>Actions</th></tr></thead>
               <tbody>
                 {expenses.map((e) => (
@@ -374,7 +374,7 @@ export default function Finances() {
             </ul>
           )}
           <div className="table-responsive">
-            <table className="table">
+            <table className="table table-mobile-stack">
               <thead><tr><th>Project</th><th>Description</th><th>Date</th><th className="num">Amount</th><th>Actions</th></tr></thead>
               <tbody>
                 {incomes.map((i) => (

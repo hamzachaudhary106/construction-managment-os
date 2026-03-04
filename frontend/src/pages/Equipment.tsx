@@ -157,62 +157,68 @@ export default function Equipment() {
           </form>
         )}
         {tab === 'allocations' && (
-          <table className="table">
-            <thead><tr><th>Equipment</th><th>Project</th><th>From</th><th>To</th><th className="num">Rate/day</th><th>Actions</th></tr></thead>
-            <tbody>
-              {allocations.map((a) => (
-                <tr key={a.id}>
-                  <td><strong>{a.equipment_name}</strong></td>
-                  <td>{a.project_name}</td>
-                  <td>{a.from_date}</td>
-                  <td>{a.to_date || '—'}</td>
-                  <td className="num">{a.rate_per_day ? formatRs(a.rate_per_day) : '—'}</td>
-                  <td>
-                    <div className="table-actions">
-                      <button type="button" className="btn-action btn-action-danger" onClick={() => deleteAllocation(a.id)}>Remove</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="table-responsive">
+            <table className="table table-mobile-stack">
+              <thead><tr><th>Equipment</th><th>Project</th><th>From</th><th>To</th><th className="num">Rate/day</th><th>Actions</th></tr></thead>
+              <tbody>
+                {allocations.map((a) => (
+                  <tr key={a.id}>
+                    <td><strong>{a.equipment_name}</strong></td>
+                    <td>{a.project_name}</td>
+                    <td>{a.from_date}</td>
+                    <td>{a.to_date || '—'}</td>
+                    <td className="num">{a.rate_per_day ? formatRs(a.rate_per_day) : '—'}</td>
+                    <td>
+                      <div className="table-actions">
+                        <button type="button" className="btn-action btn-action-danger" onClick={() => deleteAllocation(a.id)}>Remove</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
         {tab === 'equipment' && (
-          <table className="table">
-            <thead><tr><th>Name</th><th>Type</th><th>Owner</th><th>Actions</th></tr></thead>
-            <tbody>
-              {equipment.map((e) => (
-                <tr key={e.id}>
-                  <td><strong>{e.name}</strong></td>
-                  <td>{e.equipment_type || '—'}</td>
-                  <td><span className="badge badge-active">{e.owner_type}</span></td>
-                  <td>
-                    <div className="table-actions">
-                      <button type="button" className="btn-action btn-action-danger" onClick={() => deleteEquipment(e.id, e.name)}>Delete</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="table-responsive">
+            <table className="table table-mobile-stack">
+              <thead><tr><th>Name</th><th>Type</th><th>Owner</th><th>Actions</th></tr></thead>
+              <tbody>
+                {equipment.map((e) => (
+                  <tr key={e.id}>
+                    <td><strong>{e.name}</strong></td>
+                    <td>{e.equipment_type || '—'}</td>
+                    <td><span className="badge badge-active">{e.owner_type}</span></td>
+                    <td>
+                      <div className="table-actions">
+                        <button type="button" className="btn-action btn-action-danger" onClick={() => deleteEquipment(e.id, e.name)}>Delete</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
         {tab === 'maintenance' && (
-          <table className="table">
-            <thead><tr><th>Equipment</th><th>Date</th><th>Type</th><th className="num">Cost</th><th>Next due</th><th>Performed by</th><th>Actions</th></tr></thead>
-            <tbody>
-              {maintenance.map((m) => (
-                <tr key={m.id}>
-                  <td><strong>{m.equipment_name}</strong></td>
-                  <td>{m.maintenance_date}</td>
-                  <td><span className="badge badge-active">{m.maintenance_type_display ?? m.maintenance_type}</span></td>
-                  <td className="num">{m.cost != null ? formatRs(m.cost) : '—'}</td>
-                  <td>{m.next_due_date || '—'}</td>
-                  <td>{m.performed_by || '—'}</td>
-                  <td><button type="button" className="btn-action btn-action-danger" onClick={() => deleteMaintenance(m.id)}>Delete</button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="table-responsive">
+            <table className="table table-mobile-stack">
+              <thead><tr><th>Equipment</th><th>Date</th><th>Type</th><th className="num">Cost</th><th>Next due</th><th>Performed by</th><th>Actions</th></tr></thead>
+              <tbody>
+                {maintenance.map((m) => (
+                  <tr key={m.id}>
+                    <td><strong>{m.equipment_name}</strong></td>
+                    <td>{m.maintenance_date}</td>
+                    <td><span className="badge badge-active">{m.maintenance_type_display ?? m.maintenance_type}</span></td>
+                    <td className="num">{m.cost != null ? formatRs(m.cost) : '—'}</td>
+                    <td>{m.next_due_date || '—'}</td>
+                    <td>{m.performed_by || '—'}</td>
+                    <td><button type="button" className="btn-action btn-action-danger" onClick={() => deleteMaintenance(m.id)}>Delete</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
         {((tab === 'allocations' && allocations.length === 0) || (tab === 'equipment' && equipment.length === 0) || (tab === 'maintenance' && maintenance.length === 0)) && <div className="empty-state">No data yet.</div>}
       </Card>

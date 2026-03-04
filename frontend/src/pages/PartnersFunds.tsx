@@ -183,24 +183,26 @@ export default function PartnersFunds() {
               <button type="submit" className="btn-primary">{editingPartnerId ? 'Update' : 'Add'}</button>
             </form>
           )}
-          <table className="table">
-            <thead><tr><th>Name</th><th>WhatsApp</th><th>Notes</th><th>Actions</th></tr></thead>
-            <tbody>
-              {partners.map((p) => (
-                <tr key={p.id}>
-                  <td><strong>{p.name}</strong></td>
-                  <td className="muted">{p.phone || '—'}</td>
-                  <td className="muted">{p.notes || '—'}</td>
-                <td>
-                  <div className="table-actions">
-                    <button type="button" className="btn-action" onClick={() => { setEditingPartnerId(p.id); setPartnerForm({ name: p.name, phone: p.phone ?? '', notes: p.notes ?? '' }); setShowPartnerForm(true); }}>Edit</button>
-                    <button type="button" className="btn-action btn-action-danger" onClick={() => deletePartner(p.id)}>Delete</button>
-                  </div>
-                </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="table-responsive">
+            <table className="table">
+              <thead><tr><th>Name</th><th>WhatsApp</th><th>Notes</th><th>Actions</th></tr></thead>
+              <tbody>
+                {partners.map((p) => (
+                  <tr key={p.id}>
+                    <td><strong>{p.name}</strong></td>
+                    <td className="muted">{p.phone || '—'}</td>
+                    <td className="muted">{p.notes || '—'}</td>
+                  <td>
+                    <div className="table-actions">
+                      <button type="button" className="btn-action" onClick={() => { setEditingPartnerId(p.id); setPartnerForm({ name: p.name, phone: p.phone ?? '', notes: p.notes ?? '' }); setShowPartnerForm(true); }}>Edit</button>
+                      <button type="button" className="btn-action btn-action-danger" onClick={() => deletePartner(p.id)}>Delete</button>
+                    </div>
+                  </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           {partners.length === 0 && !showPartnerForm && <p className="muted">No partners yet. Add partners to record investments and withdrawals.</p>}
         </Card>
       )}
@@ -225,29 +227,31 @@ export default function PartnersFunds() {
               <button type="submit" className="btn-primary">Record</button>
             </form>
           )}
-          <table className="table">
-            <thead><tr><th>Project</th><th className="num">Amount</th><th>Date</th><th>Investor</th><th>Description</th><th>Actions</th></tr></thead>
-            <tbody>
-              {investments.map((i) => (
-                <tr key={i.id}>
-                  <td>{i.project_name ?? projectName(i.project)}</td>
-                  <td className="num text-success">{formatRs(i.amount)}</td>
-                  <td>{i.investment_date}</td>
-                  <td>{i.partner_name ?? (i.partner ? partnerName(i.partner) : '—')}</td>
-                  <td className="muted">{i.description || '—'}</td>
-                  <td>
-                    <div className="table-actions">
-                      <button type="button" className="btn-action" onClick={() => downloadInvestmentReceipt(i.id)}>Download receipt</button>
-                      {partnerHasPhone(i.partner) && (
-                        <button type="button" className="btn-action" onClick={() => sendInvestmentReceiptWhatsApp(i.id)}>Send via WhatsApp</button>
-                      )}
-                      <button type="button" className="btn-action btn-action-danger" onClick={() => deleteInvestment(i.id)}>Delete</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="table-responsive">
+            <table className="table">
+              <thead><tr><th>Project</th><th className="num">Amount</th><th>Date</th><th>Investor</th><th>Description</th><th>Actions</th></tr></thead>
+              <tbody>
+                {investments.map((i) => (
+                  <tr key={i.id}>
+                    <td>{i.project_name ?? projectName(i.project)}</td>
+                    <td className="num text-success">{formatRs(i.amount)}</td>
+                    <td>{i.investment_date}</td>
+                    <td>{i.partner_name ?? (i.partner ? partnerName(i.partner) : '—')}</td>
+                    <td className="muted">{i.description || '—'}</td>
+                    <td>
+                      <div className="table-actions">
+                        <button type="button" className="btn-action" onClick={() => downloadInvestmentReceipt(i.id)}>Download receipt</button>
+                        {partnerHasPhone(i.partner) && (
+                          <button type="button" className="btn-action" onClick={() => sendInvestmentReceiptWhatsApp(i.id)}>Send via WhatsApp</button>
+                        )}
+                        <button type="button" className="btn-action btn-action-danger" onClick={() => deleteInvestment(i.id)}>Delete</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           {investments.length === 0 && !showInvForm && <p className="muted">No investments recorded.</p>}
         </Card>
       )}
@@ -272,29 +276,31 @@ export default function PartnersFunds() {
               <button type="submit" className="btn-primary">Record</button>
             </form>
           )}
-          <table className="table">
-            <thead><tr><th>Project</th><th>Partner</th><th className="num">Amount</th><th>Date</th><th>Description</th><th>Actions</th></tr></thead>
-            <tbody>
-              {withdrawals.map((w) => (
-                <tr key={w.id}>
-                  <td>{w.project_name ?? projectName(w.project)}</td>
-                  <td><strong>{w.partner_name ?? partnerName(w.partner)}</strong></td>
-                  <td className="num text-danger">{formatRs(w.amount)}</td>
-                  <td>{w.withdrawal_date}</td>
-                  <td className="muted">{w.description || '—'}</td>
-                  <td>
-                    <div className="table-actions">
-                      <button type="button" className="btn-action" onClick={() => downloadWithdrawalReceipt(w.id)}>Download receipt</button>
-                      {partnerHasPhone(w.partner) && (
-                        <button type="button" className="btn-action" onClick={() => sendWithdrawalReceiptWhatsApp(w.id)}>Send via WhatsApp</button>
-                      )}
-                      <button type="button" className="btn-action btn-action-danger" onClick={() => deleteWithdrawal(w.id)}>Delete</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="table-responsive">
+            <table className="table">
+              <thead><tr><th>Project</th><th>Partner</th><th className="num">Amount</th><th>Date</th><th>Description</th><th>Actions</th></tr></thead>
+              <tbody>
+                {withdrawals.map((w) => (
+                  <tr key={w.id}>
+                    <td>{w.project_name ?? projectName(w.project)}</td>
+                    <td><strong>{w.partner_name ?? partnerName(w.partner)}</strong></td>
+                    <td className="num text-danger">{formatRs(w.amount)}</td>
+                    <td>{w.withdrawal_date}</td>
+                    <td className="muted">{w.description || '—'}</td>
+                    <td>
+                      <div className="table-actions">
+                        <button type="button" className="btn-action" onClick={() => downloadWithdrawalReceipt(w.id)}>Download receipt</button>
+                        {partnerHasPhone(w.partner) && (
+                          <button type="button" className="btn-action" onClick={() => sendWithdrawalReceiptWhatsApp(w.id)}>Send via WhatsApp</button>
+                        )}
+                        <button type="button" className="btn-action btn-action-danger" onClick={() => deleteWithdrawal(w.id)}>Delete</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           {withdrawals.length === 0 && !showWdForm && <p className="muted">No withdrawals recorded.</p>}
         </Card>
       )}

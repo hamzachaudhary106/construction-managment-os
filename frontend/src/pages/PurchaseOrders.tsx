@@ -140,29 +140,31 @@ export default function PurchaseOrders() {
             <button type="submit" className="btn-primary">{editingId ? 'Update' : 'Create'}</button>
           </form>
         )}
-        <table className="table">
-          <thead>
-            <tr><th>PO #</th><th>Project</th><th>Supplier</th><th>Status</th><th>Order date</th><th>Expected</th><th>Actions</th></tr>
-          </thead>
-          <tbody>
-            {list.map((po) => (
-              <tr key={po.id}>
-                <td><strong>{po.po_number || `PO-${po.id}`}</strong></td>
-                <td>{projectName(po.project)}</td>
-                <td>{supplierName(po.supplier)}</td>
-                <td><span className={`badge badge-${po.status}`}>{po.status}</span></td>
-                <td>{po.order_date || '—'}</td>
-                <td>{po.expected_date || '—'}</td>
-                <td>
-                  <div className="table-actions">
-                    <button type="button" className="btn-action" onClick={() => openEdit(po)}>Edit</button>
-                    <button type="button" className="btn-action btn-action-danger" onClick={() => deletePO(po.id)}>Delete</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="table-responsive">
+          <table className="table">
+            <thead>
+              <tr><th>PO #</th><th>Project</th><th>Supplier</th><th>Status</th><th>Order date</th><th>Expected</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              {list.map((po) => (
+                <tr key={po.id}>
+                  <td><strong>{po.po_number || `PO-${po.id}`}</strong></td>
+                  <td>{projectName(po.project)}</td>
+                  <td>{supplierName(po.supplier)}</td>
+                  <td><span className={`badge badge-${po.status}`}>{po.status}</span></td>
+                  <td>{po.order_date || '—'}</td>
+                  <td>{po.expected_date || '—'}</td>
+                  <td>
+                    <div className="table-actions">
+                      <button type="button" className="btn-action" onClick={() => openEdit(po)}>Edit</button>
+                      <button type="button" className="btn-action btn-action-danger" onClick={() => deletePO(po.id)}>Delete</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {list.length === 0 && !showForm && <div className="empty-state">No purchase orders yet.</div>}
       </Card>
     </>

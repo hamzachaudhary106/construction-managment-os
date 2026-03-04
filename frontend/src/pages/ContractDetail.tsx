@@ -104,42 +104,44 @@ export default function ContractDetail() {
             <button type="submit" className="btn-primary">Add</button>
           </form>
         )}
-        <table className="table">
-          <thead>
-            <tr><th>Description</th><th className="num">Amount</th><th>Due date</th><th>Status</th><th>Paid date</th><th style={{ width: '1%' }}>Actions</th></tr>
-          </thead>
-          <tbody>
-            {schedules.map((s) => (
-              <tr key={s.id}>
-                <td>{s.description}</td>
-                <td className="num">{formatRs(s.amount)}</td>
-                <td>{s.due_date}</td>
-                <td>
-                  <select
-                    className={`status-select status-${s.status}`}
-                    value={s.status}
-                    onChange={(e) => {
-                      if (e.target.value === 'paid') markSchedulePaid(s.id);
-                      else client.patch(`/contracts/payment-schedules/${s.id}/`, { status: e.target.value }).then(load);
-                    }}
-                    aria-label={`Change status for ${s.description}`}
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="paid">Paid</option>
-                    <option value="overdue">Overdue</option>
-                  </select>
-                </td>
-                <td>{s.paid_date || '—'}</td>
-                <td>
-                  <div className="table-actions">
-                    {s.status !== 'paid' && <button type="button" className="btn-action btn-action-primary" onClick={() => markSchedulePaid(s.id)}>Mark paid</button>}
-                    <button type="button" className="btn-action btn-action-danger" onClick={() => deleteSchedule(s.id)}>Delete</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="table-responsive">
+          <table className="table table-mobile-stack">
+            <thead>
+              <tr><th>Description</th><th className="num">Amount</th><th>Due date</th><th>Status</th><th>Paid date</th><th style={{ width: '1%' }}>Actions</th></tr>
+            </thead>
+            <tbody>
+              {schedules.map((s) => (
+                <tr key={s.id}>
+                  <td>{s.description}</td>
+                  <td className="num">{formatRs(s.amount)}</td>
+                  <td>{s.due_date}</td>
+                  <td>
+                    <select
+                      className={`status-select status-${s.status}`}
+                      value={s.status}
+                      onChange={(e) => {
+                        if (e.target.value === 'paid') markSchedulePaid(s.id);
+                        else client.patch(`/contracts/payment-schedules/${s.id}/`, { status: e.target.value }).then(load);
+                      }}
+                      aria-label={`Change status for ${s.description}`}
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="paid">Paid</option>
+                      <option value="overdue">Overdue</option>
+                    </select>
+                  </td>
+                  <td>{s.paid_date || '—'}</td>
+                  <td>
+                    <div className="table-actions">
+                      {s.status !== 'paid' && <button type="button" className="btn-action btn-action-primary" onClick={() => markSchedulePaid(s.id)}>Mark paid</button>}
+                      <button type="button" className="btn-action btn-action-danger" onClick={() => deleteSchedule(s.id)}>Delete</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {schedules.length === 0 && !showScheduleForm && <p className="muted">No payment schedules.</p>}
       </Card>
     </>

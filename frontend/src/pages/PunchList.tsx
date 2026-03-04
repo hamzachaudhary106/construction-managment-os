@@ -114,34 +114,36 @@ export default function PunchList() {
             <button type="submit" className="btn-primary">Add</button>
           </form>
         )}
-        <table className="table">
-          <thead>
-            <tr><th>Project</th><th>Title</th><th>Location</th><th>Status</th><th>Due date</th><th>Actions</th></tr>
-          </thead>
-          <tbody>
-            {items.map((i) => (
-              <tr key={i.id}>
-                <td>{projectName(i.project)}</td>
-                <td><strong>{i.title}</strong>{i.description ? <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{i.description.slice(0, 60)}{i.description.length > 60 ? '…' : ''}</div> : null}</td>
-                <td>{i.location || '—'}</td>
-                <td>
-                  <select className={`status-select status-${i.status}`} value={i.status} onChange={(e) => updateStatus(i.id, e.target.value)}>
-                    <option value="open">Open</option>
-                    <option value="in_progress">In progress</option>
-                    <option value="resolved">Resolved</option>
-                    <option value="closed">Closed</option>
-                  </select>
-                </td>
-                <td>{i.due_date || '—'}</td>
-                <td>
-                  <div className="table-actions">
-                    <button type="button" className="btn-action btn-action-danger" onClick={() => deleteItem(i.id)}>Delete</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="table-responsive">
+          <table className="table table-mobile-stack">
+            <thead>
+              <tr><th>Project</th><th>Title</th><th>Location</th><th>Status</th><th>Due date</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              {items.map((i) => (
+                <tr key={i.id}>
+                  <td>{projectName(i.project)}</td>
+                  <td><strong>{i.title}</strong>{i.description ? <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{i.description.slice(0, 60)}{i.description.length > 60 ? '…' : ''}</div> : null}</td>
+                  <td>{i.location || '—'}</td>
+                  <td>
+                    <select className={`status-select status-${i.status}`} value={i.status} onChange={(e) => updateStatus(i.id, e.target.value)}>
+                      <option value="open">Open</option>
+                      <option value="in_progress">In progress</option>
+                      <option value="resolved">Resolved</option>
+                      <option value="closed">Closed</option>
+                    </select>
+                  </td>
+                  <td>{i.due_date || '—'}</td>
+                  <td>
+                    <div className="table-actions">
+                      <button type="button" className="btn-action btn-action-danger" onClick={() => deleteItem(i.id)}>Delete</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {items.length === 0 && <div className="empty-state">No punch items yet.</div>}
       </Card>
     </>

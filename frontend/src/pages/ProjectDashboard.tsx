@@ -110,22 +110,24 @@ export default function ProjectDashboard() {
         {expenses_by_category.length === 0 ? (
           <p className="muted">No expenses recorded yet.</p>
         ) : (
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Category</th>
-                <th className="num">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {expenses_by_category.map((row) => (
-                <tr key={row.category}>
-                  <td>{row.category}</td>
-                  <td className="num">{formatRs(Number(row.total))}</td>
+          <div className="table-responsive">
+            <table className="table table-mobile-stack">
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th className="num">Amount</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {expenses_by_category.map((row) => (
+                  <tr key={row.category}>
+                    <td>{row.category}</td>
+                    <td className="num">{formatRs(Number(row.total))}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </Card>
       <Card title="Project history (A to Z)">

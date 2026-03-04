@@ -126,29 +126,33 @@ export default function Materials() {
           </form>
         )}
         {tab === 'catalog' && (
-          <table className="table">
-            <thead><tr><th>Name</th><th>Unit</th><th>Category</th></tr></thead>
-            <tbody>
-              {materials.map((m) => <tr key={m.id}><td>{m.name}</td><td>{m.unit}</td><td>{m.category || '—'}</td></tr>)}
-            </tbody>
-          </table>
+          <div className="table-responsive">
+            <table className="table table-mobile-stack">
+              <thead><tr><th>Name</th><th>Unit</th><th>Category</th></tr></thead>
+              <tbody>
+                {materials.map((m) => <tr key={m.id}><td>{m.name}</td><td>{m.unit}</td><td>{m.category || '—'}</td></tr>)}
+              </tbody>
+            </table>
+          </div>
         )}
         {tab === 'project' && (
-          <table className="table">
-            <thead><tr><th>Project</th><th>Material</th><th>Required</th><th>Used</th><th>Reorder</th><th>Actions</th></tr></thead>
-            <tbody>
-              {projectMaterials.map((pm) => (
-                <tr key={pm.id}>
-                  <td>{pm.project_name ?? projectName(pm.project)}</td>
-                  <td>{pm.material_name ?? pm.material} {pm.material_unit ? `(${pm.material_unit})` : ''}</td>
-                  <td>{pm.quantity_required}</td>
-                  <td>{pm.quantity_used}</td>
-                  <td>{pm.reorder_level ?? '—'}</td>
-                  <td><button type="button" className="btn-action btn-action-danger" onClick={() => deleteProjectMaterial(pm.id)}>Remove</button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="table-responsive">
+            <table className="table table-mobile-stack">
+              <thead><tr><th>Project</th><th>Material</th><th>Required</th><th>Used</th><th>Reorder</th><th>Actions</th></tr></thead>
+              <tbody>
+                {projectMaterials.map((pm) => (
+                  <tr key={pm.id}>
+                    <td>{pm.project_name ?? projectName(pm.project)}</td>
+                    <td>{pm.material_name ?? pm.material} {pm.material_unit ? `(${pm.material_unit})` : ''}</td>
+                    <td>{pm.quantity_required}</td>
+                    <td>{pm.quantity_used}</td>
+                    <td>{pm.reorder_level ?? '—'}</td>
+                    <td><button type="button" className="btn-action btn-action-danger" onClick={() => deleteProjectMaterial(pm.id)}>Remove</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
         {((tab === 'catalog' && materials.length === 0) || (tab === 'project' && projectMaterials.length === 0)) && <div className="empty-state">No data yet.</div>}
       </Card>

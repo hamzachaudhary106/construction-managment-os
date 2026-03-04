@@ -1,0 +1,31 @@
+# Production .env for backend (copy to backend/.env and fill values)
+# Do not commit .env to git.
+
+# REQUIRED: Generate a real key, e.g.:
+#   python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+DJANGO_SECRET_KEY=your-generated-secret-key-here
+
+# Production: set False
+DEBUG=False
+
+# Include all domains that serve the app (add www if used)
+ALLOWED_HOSTS=agenbord.online,www.agenbord.online,localhost,127.0.0.1
+
+USE_SQLITE=0
+DB_NAME=construction_db
+DB_USER=construction_user
+DB_PASSWORD=Strong_Password_Yahan
+DB_HOST=127.0.0.1
+DB_PORT=5432
+
+# Frontend URL (single value; used in emails/links)
+FRONTEND_BASE_URL=https://agenbord.online
+
+# CORS: allow these origins to call the API (comma-separated, use HTTPS in prod)
+CORS_ORIGINS=https://agenbord.online,https://www.agenbord.online
+
+# Required for Django admin and API from HTTPS (comma-separated)
+CSRF_TRUSTED_ORIGINS=https://agenbord.online,https://www.agenbord.online
+
+WHATSAPP_ENABLED=False
+GREENAPI_ENABLED=true

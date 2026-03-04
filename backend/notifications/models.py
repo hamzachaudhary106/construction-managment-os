@@ -51,3 +51,41 @@ class NotificationSettings(models.Model):
 
     def __str__(self):
         return f"Notification settings for {self.user.username}"
+
+
+class WhatsAppLog(models.Model):
+    """Audit log of WhatsApp messages sent by the system."""
+
+    class Provider(models.TextChoices):
+        GREEN = 'green', 'Green API'
+        CLOUD = 'cloud', 'WhatsApp Cloud API'
+        UNKNOWN = 'unknown', 'Unknown'
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='whatsapp_logs',
+    )
+    phone = models.CharField(max_length=32)
+    context = models.CharField(
+        max_length=50,
+        blank=True,
+        help_text="High-level source, e.g. bill_pdf, bill_text, report_pdf.",
+    )
+    message = models.TextField(blank=True)
+    success = models.BooleanField(default=False)
+    provider = models.CharField(
+        max_length=20,
+        choices=Provider.choices,
+        default=Provider.UNKNOWN,
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        status = 'sent' if self.success else 'failed'
+        return f"{self.phone} – {self.context} ({status})"

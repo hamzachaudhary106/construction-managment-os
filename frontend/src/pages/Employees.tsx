@@ -209,46 +209,48 @@ export default function Employees() {
             <button type="submit" className="btn-primary">{editingId ? 'Update' : 'Add'}</button>
           </form>
         )}
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Designation</th>
-              <th>Department</th>
-              <th>Employment</th>
-              <th>Base salary</th>
-              <th>Project</th>
-              <th>Phone</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {employees.map((e) => (
-              <tr key={e.id}>
-                <td>
-                  <strong>{e.full_name}</strong>
-                  {e.code && <div className="muted" style={{ fontSize: '0.8rem' }}>Code: {e.code}</div>}
-                </td>
-                <td>{e.designation || '—'}</td>
-                <td>{e.department || '—'}</td>
-                <td>{e.employment_type.replace('_', ' ')}</td>
-                <td className="num">{formatRs(e.base_salary || '0')}</td>
-                <td>{e.default_project_name || '—'}</td>
-                <td>{e.phone || '—'}</td>
-                <td>
-                  <span className={`badge ${e.is_active ? 'badge-active' : 'badge-muted'}`}>{e.is_active ? 'Active' : 'Inactive'}</span>
-                </td>
-                <td>
-                  <div className="table-actions">
-                    <button type="button" className="btn-action" onClick={() => startEdit(e)}>Edit</button>
-                    <button type="button" className="btn-action" onClick={() => toggleActive(e)}>{e.is_active ? 'Mark inactive' : 'Mark active'}</button>
-                  </div>
-                </td>
+        <div className="table-responsive">
+          <table className="table table-mobile-stack">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Designation</th>
+                <th>Department</th>
+                <th>Employment</th>
+                <th>Base salary</th>
+                <th>Project</th>
+                <th>Phone</th>
+                <th>Status</th>
+                <th>Actions</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {employees.map((e) => (
+                <tr key={e.id}>
+                  <td>
+                    <strong>{e.full_name}</strong>
+                    {e.code && <div className="muted" style={{ fontSize: '0.8rem' }}>Code: {e.code}</div>}
+                  </td>
+                  <td>{e.designation || '—'}</td>
+                  <td>{e.department || '—'}</td>
+                  <td>{e.employment_type.replace('_', ' ')}</td>
+                  <td className="num">{formatRs(e.base_salary || '0')}</td>
+                  <td>{e.default_project_name || '—'}</td>
+                  <td>{e.phone || '—'}</td>
+                  <td>
+                    <span className={`badge ${e.is_active ? 'badge-active' : 'badge-muted'}`}>{e.is_active ? 'Active' : 'Inactive'}</span>
+                  </td>
+                  <td>
+                    <div className="table-actions">
+                      <button type="button" className="btn-action" onClick={() => startEdit(e)}>Edit</button>
+                      <button type="button" className="btn-action" onClick={() => toggleActive(e)}>{e.is_active ? 'Mark inactive' : 'Mark active'}</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {employees.length === 0 && !showForm && <div className="empty-state">No employees yet.</div>}
       </Card>
     </>

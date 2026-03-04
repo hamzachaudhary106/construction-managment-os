@@ -138,44 +138,46 @@ export default function Contracts() {
             <button type="submit" className="btn-primary">Create</button>
           </form>
         )}
-        <table className="table">
-          <thead>
-            <tr><th>Project</th><th>Title</th><th>Contractor / Party</th><th className="num">Total</th><th>Status</th><th>Payments</th><th>Actions</th></tr>
-          </thead>
-          <tbody>
-            {contracts.map((c) => (
-              <tr key={c.id}>
-                <td>{projectName(c.project)}</td>
-                <td><strong>{c.title}</strong></td>
-                <td>{c.party_name || c.contractor_name}</td>
-                <td className="num">{formatRs(c.total_value)}</td>
-                <td>
-                  <select
-                    className={`status-select status-${c.status}`}
-                    value={c.status}
-                    onChange={(e) => updateContractStatus(c.id, e.target.value)}
-                    aria-label={`Change status for ${c.title}`}
-                  >
-                    <option value="draft">Draft</option>
-                    <option value="active">Active</option>
-                    <option value="completed">Completed</option>
-                    <option value="terminated">Terminated</option>
-                  </select>
-                </td>
-                <td>
-                  <Link to={`/contracts/${c.id}`} className="btn-action btn-action-primary">View & manage schedules</Link>
-                  {' '}({c.payment_schedules?.length ?? 0})
-                </td>
-                <td>
-                  <div className="table-actions">
-                    <Link to={`/contracts/${c.id}`} className="btn-action btn-action-primary">Edit</Link>
-                    <button type="button" className="btn-action btn-action-danger" onClick={() => deleteContract(c.id, c.title)}>Delete</button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="table-responsive">
+          <table className="table table-mobile-stack">
+            <thead>
+              <tr><th>Project</th><th>Title</th><th>Contractor / Party</th><th className="num">Total</th><th>Status</th><th>Payments</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              {contracts.map((c) => (
+                <tr key={c.id}>
+                  <td>{projectName(c.project)}</td>
+                  <td><strong>{c.title}</strong></td>
+                  <td>{c.party_name || c.contractor_name}</td>
+                  <td className="num">{formatRs(c.total_value)}</td>
+                  <td>
+                    <select
+                      className={`status-select status-${c.status}`}
+                      value={c.status}
+                      onChange={(e) => updateContractStatus(c.id, e.target.value)}
+                      aria-label={`Change status for ${c.title}`}
+                    >
+                      <option value="draft">Draft</option>
+                      <option value="active">Active</option>
+                      <option value="completed">Completed</option>
+                      <option value="terminated">Terminated</option>
+                    </select>
+                  </td>
+                  <td>
+                    <Link to={`/contracts/${c.id}`} className="btn-action btn-action-primary">View & manage schedules</Link>
+                    {' '}({c.payment_schedules?.length ?? 0})
+                  </td>
+                  <td>
+                    <div className="table-actions">
+                      <Link to={`/contracts/${c.id}`} className="btn-action btn-action-primary">Edit</Link>
+                      <button type="button" className="btn-action btn-action-danger" onClick={() => deleteContract(c.id, c.title)}>Delete</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
         {contracts.length === 0 && <div className="empty-state">No contracts yet. Add a contract to get started.</div>}
       </Card>
     </>

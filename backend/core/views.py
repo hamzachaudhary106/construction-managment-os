@@ -2,9 +2,11 @@ from rest_framework import generics, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.conf import settings
+from django.db import connection
+from django.db.models import Q
+from django.utils import timezone
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from django.db.models import Q
 from .models import User, Company, Client
 from .serializers import (
     UserSerializer,
@@ -296,3 +298,31 @@ class GlobalSearchView(APIView):
             results.append({'type': 'party', 'id': p.id, 'label': f'{p.name} ({p.get_party_type_display()})', 'url': '/parties'})
 
         return Response({'results': results})
+
+
+class HealthView(APIView):
+    """
+    Lightweight health endpoint for uptime checks.
+    Returns app status and whether the primary database is reachable.
+    """
+
+    permission_classes = [permissions.AllowAny]
+    authentication_classes: list = []
+
+    def get(self, request):
+        db_ok = True
+        try:
+            with connection.cursor() as cursor:
+                cursor.execute("SELECT 1")
+                cursor.fetchone()
+        except Exception:
+            db_ok = False
+
+        status = "ok" if db_ok else "degraded"
+        return Response(
+            {
+                "status": status,
+                "db": db_ok,
+                "time": timezone.now(),
+            }
+        )
