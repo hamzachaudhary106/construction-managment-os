@@ -6,6 +6,10 @@ import Layout from './components/Layout';
 import ScrollToTop from './components/ScrollToTop';
 import Login from './pages/Login';
 import Pricing from './pages/Pricing';
+import Home from './pages/Home';
+import About from './pages/About';
+import HowItWorks from './pages/HowItWorks';
+import Contact from './pages/Contact';
 import Dashboard from './pages/Dashboard';
 import ProjectDashboard from './pages/ProjectDashboard';
 import Projects from './pages/Projects';
@@ -54,6 +58,10 @@ function AppRoutes() {
     <>
       <ScrollToTop />
       <Routes>
+        <Route path="/home" element={<Home />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/how-it-works" element={<HowItWorks />} />
+        <Route path="/contact" element={<Contact />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/login" element={<Login />} />
         <Route
